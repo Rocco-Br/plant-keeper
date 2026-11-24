@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plant Keeper wireframes</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 16px; background: #e6e6e6; color: #222; font-family: Arial, Helvetica, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 4px; text-align: center; }
+  .intro { text-align: center; font-size: 13px; color: #555; margin: 0 0 32px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 36px 28px; justify-content: center; }
+  .item { display: flex; flex-direction: column; align-items: center; width: 320px; }
+  .item h2 { font-size: 15px; margin: 0 0 10px; }
+  .notes { font-size: 12px; color: #555; margin: 10px 0 0; padding-left: 16px; width: 320px; }
+  .notes li { margin-bottom: 3px; }
+
+  .phone { width: 320px; height: 620px; background: #fff; border: 2px solid #555; border-radius: 26px; display: flex; flex-direction: column; overflow: hidden; }
+  .bar { height: 50px; flex: 0 0 50px; background: #d4d4d4; border-bottom: 1px solid #999; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-weight: bold; font-size: 15px; }
+  .bar .side { font-size: 12px; font-weight: normal; border: 1px solid #666; border-radius: 14px; padding: 3px 9px; background: #eee; }
+  .content { flex: 1; padding: 10px 12px; overflow: hidden; position: relative; }
+  .nav { flex: 0 0 56px; height: 56px; background: #d4d4d4; border-top: 1px solid #999; display: flex; justify-content: space-around; align-items: center; }
+  .nav span { font-size: 11px; padding: 5px 6px; border: 1px dashed #777; border-radius: 10px; background: #ededed; }
+  .nav span.on { border: 1px solid #222; background: #fff; font-weight: bold; }
+
+  .sec { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #444; margin: 10px 0 6px; letter-spacing: .03em; }
+  .box { border: 1px dashed #888; background: #f4f4f4; border-radius: 6px; padding: 7px 9px; font-size: 13px; margin-bottom: 7px; }
+  .img { height: 110px; background: #c4c4c4; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #444; margin-bottom: 8px; }
+  .row { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px solid #ccc; font-size: 13px; }
+  .row .txt { flex: 1; min-width: 0; }
+  .row .sub { font-size: 11px; color: #666; }
+  .thumb { width: 40px; height: 40px; flex: 0 0 40px; background: #bdbdbd; border-radius: 5px; font-size: 9px; display: flex; align-items: center; justify-content: center; color: #444; }
+  .badge { font-size: 10px; border: 1px solid #222; border-radius: 4px; padding: 1px 5px; white-space: nowrap; background: #fff; }
+  .badge.strong { background: #222; color: #fff; }
+  .btn { display: inline-block; border: 1px solid #555; border-radius: 18px; padding: 6px 12px; font-size: 12px; background: #eee; margin: 3px 4px 3px 0; }
+  .btn.solid { background: #444; color: #fff; }
+  .btn.full { display: block; text-align: center; margin: 8px 0; }
+  .btn.danger { border-style: dashed; color: #444; }
+  .field { margin-bottom: 8px; }
+  .field .lbl { font-size: 11px; color: #555; margin-bottom: 2px; }
+  .field .inp { border: 1px solid #888; border-radius: 5px; height: 30px; background: #fff; font-size: 12px; color: #777; padding: 6px 8px; }
+  .field .inp.area { height: 46px; }
+  .two { display: flex; gap: 6px; }
+  .two .inp { flex: 1; }
+  .chips { display: flex; gap: 5px; overflow: hidden; white-space: nowrap; margin-bottom: 8px; }
+  .chip { font-size: 11px; border: 1px solid #777; border-radius: 12px; padding: 3px 8px; background: #fff; }
+  .chip.on { background: #333; color: #fff; }
+  .search { border: 1px solid #888; border-radius: 18px; height: 32px; padding: 7px 12px; font-size: 12px; color: #777; margin-bottom: 8px; background: #fff; }
+  .fab { position: absolute; right: 14px; bottom: 12px; width: 46px; height: 46px; border-radius: 50%; background: #444; color: #fff; font-size: 24px; text-align: center; line-height: 46px; }
+  .yearbar { display: flex; gap: 2px; margin: 4px 0 8px; }
+  .yearbar span { flex: 1; height: 22px; font-size: 9px; text-align: center; line-height: 22px; border: 1px solid #888; background: #fff; color: #555; }
+  .yearbar span.on { background: #555; color: #fff; }
+  .toggle { width: 34px; height: 18px; border-radius: 10px; border: 1px solid #555; background: #ddd; position: relative; flex: 0 0 34px; }
+  .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #444; }
+  .toggle.on { background: #444; }
+  .toggle.on::after { left: 18px; background: #fff; }
+  .radio { font-size: 13px; margin: 4px 0; }
+  .radio::before { content: "\25CB\00a0"; }
+  .radio.on::before { content: "\25C9\00a0"; }
+  .warn { border: 1px solid #222; background: #fff; border-radius: 6px; padding: 7px 9px; font-size: 12px; margin: 8px 0; }
+  .menu-row { border: 1px solid #888; border-radius: 6px; padding: 14px 10px; margin-bottom: 8px; font-size: 14px; background: #fafafa; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<h1>Plant Keeper, wireframes MVP</h1>
+<p class="intro">Lage-fidelity, alleen grijstinten. Het doel is de structuur, niet de look. Telefoonformaat, 320 x 620.</p>
+
+<div class="grid">
+
+  <!-- 1. Startscherm -->
+  <div class="item">
+    <h2>1. Startscherm: Nu zaaibaar</h2>
+    <div class="phone">
+      <div class="bar">Nu zaaibaar <span class="side">november</span></div>
+      <div class="content">
+        <div class="sec">Binnen</div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Tomaat Moneymaker<div class="sub">2 zakjes, houdbaar t/m 2027</div></div><span class="badge strong">verlopen</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Paprika Sweet<div class="sub">4 bussen, bus 3 kast</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Basilicum<div class="sub">1 zakje, vensterbank</div></div></div>
+        <div class="sec">Buiten</div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Wortel Nantes<div class="sub">3 zakjes</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Sla Eikenblad<div class="sub">2 zakjes</div></div></div>
+      </div>
+      <div class="nav"><span class="on">Nu zaaibaar</span><span>Zaden</span><span>Planten</span><span>Meer</span></div>
+    </div>
+    <ul class="notes">
+      <li>Lege sectie: "Niets om te zaaien binnen deze maand".</li>
+      <li>Label "verlopen" bij zaden waarvan het houdbaar-tot-jaar voorbij is.</li>
+    </ul>
+  </div>
+
+  <!-- 2. Zaden-lijst -->
+  <div class="item">
+    <h2>2. Zaden-lijst</h2>
+    <div class="phone">
+      <div class="bar">Zaden <span class="side">Zoek</span></div>
+      <div class="content">
+        <div class="search">Zoek op naam</div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Tomaat Moneymaker<div class="sub">Tomaat, 2 zakjes, bus 1</div></div><span class="badge strong">verlopen</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Paprika Sweet<div class="sub">Paprika, 4 bussen, bus 3</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Basilicum<div class="sub">Basilicum, 1 zakje, kast</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Wortel Nantes<div class="sub">Wortel, 3 zakjes, la 2</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Sla Eikenblad<div class="sub">Sla, 2 zakjes, bus 4</div></div></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Pompoen Butternut<div class="sub">Pompoen, 10 stuks, kast</div></div></div>
+        <div class="fab">+</div>
+      </div>
+      <div class="nav"><span>Nu zaaibaar</span><span class="on">Zaden</span><span>Planten</span><span>Meer</span></div>
+    </div>
+    <ul class="notes">
+      <li>Lijst met kleine thumbnail, geen grid.</li>
+      <li>Zoekbalk bovenin, zoekt op naam.</li>
+    </ul>
+  </div>
+
+  <!-- 3. Zaad-detail -->
+  <div class="item">
+    <h2>3. Zaad-detail</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Tomaat</span><span class="side">Bewerk</span></div>
+      <div class="content">
+        <div class="img">grote foto</div>
+        <div class="box">Soort: tomaat<br>Hoeveelheid: 2 zakjes<br>Houdbaar tot: 2027 <span class="badge strong">verlopen</span><br>Bewaarlocatie: bus 1, kast</div>
+        <div class="sec">Zaaitijden</div>
+        <div style="font-size:12px">Binnen: feb t/m apr</div>
+        <div class="yearbar"><span>J</span><span>F</span><span class="on">M</span><span class="on">A</span><span class="on">M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+        <div style="font-size:12px">Buiten: mei t/m jun</div>
+        <div class="yearbar"><span>J</span><span>F</span><span>M</span><span>A</span><span class="on">M</span><span class="on">J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+        <div class="row" style="padding:4px 0"><span class="txt">Herinnering</span><span class="toggle on"></span></div>
+        <div class="btn solid full">Zaaien</div>
+        <div class="sec">Gekoppelde planten (2)</div>
+        <div class="row"><div class="txt">Binnen, 12 feb<div class="sub">ontkiemd</div></div></div>
+        <div class="row"><div class="txt">Buiten, 3 mei<div class="sub">gezaaid</div></div></div>
+        <div class="btn danger full">Verwijder zaad</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Gekoppelde planten blijven bestaan bij verwijderen van het zaad.</li>
+      <li>"Zaaien" maakt een plant aan met dit zaad (zaaidatum vooraf ingevuld).</li>
+    </ul>
+  </div>
+
+  <!-- 4. Zaad-formulier -->
+  <div class="item">
+    <h2>4. Zaad-formulier</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Nieuw zaad</span><span class="side">Opslaan</span></div>
+      <div class="content">
+        <div class="img" style="height:70px">foto kiezen (preview)</div>
+        <div class="field"><div class="lbl">Naam</div><div class="inp">Tomaat Moneymaker</div></div>
+        <div class="field"><div class="lbl">Soort</div><div class="inp">tomaat</div></div>
+        <div class="field"><div class="lbl">Hoeveelheid</div><div class="two"><div class="inp">2</div><div class="inp">zakje &#9662;</div></div></div>
+        <div class="field"><div class="lbl">Houdbaar tot (jaar)</div><div class="inp">2027</div></div>
+        <div class="field"><div class="lbl">Bewaarlocatie (vrije tekst)</div><div class="inp">bus 1, kast</div></div>
+        <div class="field"><div class="lbl">Zaaitijd binnen (van, tot)</div><div class="two"><div class="inp">feb &#9662;</div><div class="inp">apr &#9662;</div></div></div>
+        <div class="field"><div class="lbl">Zaaitijd buiten (van, tot)</div><div class="two"><div class="inp">mei &#9662;</div><div class="inp">jun &#9662;</div></div></div>
+        <div class="field"><div class="lbl">Notities</div><div class="inp area"></div></div>
+        <div class="note" style="font-size:11px;color:#666">Scrollbaar. Verwijderen staat op het detailscherm.</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Volledig scherm, "Opslaan" rechtsboven.</li>
+      <li>Hoeveelheid is getal plus eenheid (zakje, bus, bollen, gram, stuks).</li>
+      <li>Zaaiperiode mag over de jaarwissel lopen (bijv. okt t/m feb).</li>
+    </ul>
+  </div>
+
+  <!-- 5. Planten-lijst -->
+  <div class="item">
+    <h2>5. Planten-lijst</h2>
+    <div class="phone">
+      <div class="bar">Planten <span class="side">Zoek</span></div>
+      <div class="content">
+        <div class="chips"><span class="chip on">Alle</span><span class="chip">Gezaaid</span><span class="chip">Ontkiemd</span><span class="chip">Uitgeplant</span><span class="chip">Geoogst</span><span class="chip">Mislukt</span><span class="chip">Overleden</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Tomaat Moneymaker<div class="sub">gezaaid 12 feb, vensterbank</div></div><span class="badge">ontkiemd</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Paprika Sweet<div class="sub">gezaaid 2 mrt, bak 2</div></div><span class="badge">uitgeplant</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Basilicum (losse plant)<div class="sub">gezaaid 20 apr, balkon</div></div><span class="badge">geoogst</span></div>
+        <div class="row"><div class="thumb">foto</div><div class="txt">Wortel Nantes<div class="sub">gezaaid 3 mei, bak 1</div></div><span class="badge">overleden</span></div>
+        <div class="fab">+</div>
+      </div>
+      <div class="nav"><span>Nu zaaibaar</span><span>Zaden</span><span class="on">Planten</span><span>Meer</span></div>
+    </div>
+    <ul class="notes">
+      <li>Filter op status als chips. Overleden planten blijven in de lijst.</li>
+    </ul>
+  </div>
+
+  <!-- 6. Plant-detail -->
+  <div class="item">
+    <h2>6. Plant-detail</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Tomaat</span><span class="side">Bewerk</span></div>
+      <div class="content">
+        <div class="img" style="height:90px">grote foto</div>
+        <div class="box">Status: <b>ontkiemd</b> &#9662;<br>Zaaidatum: 12 feb<br>Locatie: vensterbank<br>Zaad: <u>Tomaat Moneymaker</u> &rarr;</div>
+        <div class="box" style="font-size:12px">Notities: lange lichte plek, eerste blaadjes.</div>
+        <div class="sec">Oogst</div>
+        <div class="field"><div class="lbl">Oogstdatum</div><div class="inp">niet geoogst</div></div>
+        <div class="field"><div class="lbl">Hoeveelheid en notitie (vrij)</div><div class="inp"></div></div>
+        <div class="btn full">Maak zaad van deze plant</div>
+        <div class="btn danger full">Verwijder plant</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Status vrij te kiezen, geen verplichte volgorde.</li>
+      <li>Zonder zaad: "Losse plant" met vrije naam.</li>
+      <li>Zaadgewinning maakt een nieuw zaad-record gekoppeld aan deze plant.</li>
+    </ul>
+  </div>
+
+  <!-- 7. Plant-formulier -->
+  <div class="item">
+    <h2>7. Plant-formulier</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Nieuwe plant</span><span class="side">Opslaan</span></div>
+      <div class="content">
+        <div class="field"><div class="lbl">Zaad (of losse plant)</div><div class="inp">Tomaat Moneymaker &#9662;</div></div>
+        <div class="field"><div class="lbl">Naam (alleen bij losse plant)</div><div class="inp">niet van toepassing</div></div>
+        <div class="field"><div class="lbl">Zaaidatum</div><div class="inp">12 feb 2027</div></div>
+        <div class="field"><div class="lbl">Locatie (vrije tekst)</div><div class="inp">vensterbank</div></div>
+        <div class="field"><div class="lbl">Status</div><div class="inp">gezaaid &#9662;</div></div>
+        <div class="field"><div class="lbl">Notities</div><div class="inp area"></div></div>
+        <div class="img" style="height:70px">foto kiezen (preview)</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Bij kiezen van een zaad komt de naam automatisch in de plant.</li>
+      <li>Status standaard "gezaaid".</li>
+    </ul>
+  </div>
+
+  <!-- 8. Meer (hub) -->
+  <div class="item">
+    <h2>8. Meer (menu)</h2>
+    <div class="phone">
+      <div class="bar">Meer</div>
+      <div class="content">
+        <div class="menu-row">Herinneringen <span>&rsaquo;</span></div>
+        <div class="menu-row">Backup <span>&rsaquo;</span></div>
+      </div>
+      <div class="nav"><span>Nu zaaibaar</span><span>Zaden</span><span>Planten</span><span class="on">Meer</span></div>
+    </div>
+    <ul class="notes">
+      <li>Landingspagina van de tab Meer. Niet in de lijst gevraagd, maar nodig om de bottom bar af te maken.</li>
+    </ul>
+  </div>
+
+  <!-- 9. Herinneringen-instellingen -->
+  <div class="item">
+    <h2>9. Herinneringen-instellingen</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Herinneringen</span></div>
+      <div class="content">
+        <div class="box" style="font-size:12px">Je krijgt een melding op de eerste dag van de startmaand van een zaaiperiode. Start binnen en buiten in dezelfde maand, dan is er &eacute;&eacute;n melding.</div>
+        <div class="warn" style="font-size:12px">Meldingen staan uit op dit toestel. <span class="btn" style="margin:0">Zet aan</span></div>
+        <div class="sec">Per zaad</div>
+        <div class="row"><div class="txt">Tomaat Moneymaker<div class="sub">binnen feb t/m apr</div></div><span class="toggle on"></span></div>
+        <div class="row"><div class="txt">Paprika Sweet<div class="sub">binnen feb t/m mrt</div></div><span class="toggle on"></span></div>
+        <div class="row"><div class="txt">Wortel Nantes<div class="sub">buiten mei t/m jun</div></div><span class="toggle"></span></div>
+        <div class="row"><div class="txt">Sla Eikenblad<div class="sub">buiten apr t/m aug</div></div><span class="toggle"></span></div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Permissie-melding (Android 13+) alleen tonen als die nog niet is gegeven.</li>
+    </ul>
+  </div>
+
+  <!-- 10. Backup -->
+  <div class="item">
+    <h2>10. Backup (export en import)</h2>
+    <div class="phone">
+      <div class="bar"><span>&larr; Backup</span></div>
+      <div class="content">
+        <div class="sec">Exporteren</div>
+        <div class="box" style="font-size:12px">Maakt &eacute;&eacute;n ZIP met je gegevens en foto's. Bewaar het bestand zorgvuldig, er is geen versleuteling.</div>
+        <div class="btn solid full">Exporteer ZIP</div>
+        <div class="sec">Importeren</div>
+        <div class="btn full">Kies ZIP-bestand</div>
+        <div class="radio on">Samenvoegen (bestaande items bijwerken, nieuwe toevoegen)</div>
+        <div class="radio">Vervangen (huidige data wordt gewist)</div>
+        <div class="btn full">Importeer</div>
+        <div class="warn" style="font-size:12px">Let op: zonder export gaat data verloren als je de app verwijdert.</div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li>Vervangen vraagt om bevestiging voordat er iets gewist wordt.</li>
+      <li>Geen opslagpermissies nodig, de bestandskiezer van Android wordt gebruikt.</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

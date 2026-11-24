@@ -1,0 +1,899 @@
+<meta charset="utf-8">
+<title>Plant Keeper prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block">
+<style>
+/* Layout: a single Android phone, centred on a sage-mist stage, with a review panel beside it on wide screens. */
+:root {
+  --bg: #E9EFE6;
+  --glow-1: #D3E4CF;
+  --glow-2: #DDE8D2;
+  --surface: #F6F8F3;
+  --card: #FFFFFF;
+  --card-2: #E6EDE1;
+  --nav: #EDF2E9;
+  --ink: #16231B;
+  --ink-2: #4A5A4F;
+  --ink-3: #7D8B81;
+  --line: #CFDACB;
+  --line-soft: #E1E8DD;
+  --primary: #2C6A48;
+  --on-primary: #FFFFFF;
+  --primary-soft: #CBE6D2;
+  --on-primary-soft: #0F3920;
+  --sage: #9BBE95;
+  --hero: linear-gradient(140deg, #2C6A48 0%, #3F7F55 45%, #7FAA77 100%);
+  --on-hero: #F1F8EF;
+  --warn: #9A520E;
+  --warn-soft: #F7E4CB;
+  --warn-ink: #5E3307;
+  --danger: #B13A2E;
+  --focus: #2C6A48;
+  --bezel: #18201B;
+  --shadow: 0 30px 80px -30px rgba(22, 52, 33, .45), 0 10px 30px -12px rgba(22, 52, 33, .25);
+  --tl1: 82%;
+  --tl2: 62%;
+  --tink: 22%;
+  --s-gezaaid-bg: #EFE2CF; --s-gezaaid-fg: #6E4E26;
+  --s-ontkiemd-bg: #DDEDC8; --s-ontkiemd-fg: #3F6B17;
+  --s-uitgeplant-bg: #CBE6D2; --s-uitgeplant-fg: #1C5233;
+  --s-geoogst-bg: #F5E5B6; --s-geoogst-fg: #775300;
+  --s-mislukt-bg: #F6D9D3; --s-mislukt-fg: #8E2A1F;
+  --s-overleden-bg: #E2E6E2; --s-overleden-fg: #4F5852;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A110D; --glow-1: #13261A; --glow-2: #172619;
+    --surface: #0F1813; --card: #16221B; --card-2: #1E2D24; --nav: #131F18;
+    --ink: #E3ECE4; --ink-2: #A8B8AC; --ink-3: #78897D;
+    --line: #2B3B31; --line-soft: #213027;
+    --primary: #8ED3A5; --on-primary: #0A2615; --primary-soft: #23482F; --on-primary-soft: #CBEBD4;
+    --sage: #5E875C;
+    --hero: linear-gradient(140deg, #1B4630 0%, #275A3B 45%, #4A7449 100%);
+    --on-hero: #EAF5E8;
+    --warn: #F2B26C; --warn-soft: #3A2913; --warn-ink: #F6D6B0;
+    --danger: #F29C92; --focus: #8ED3A5; --bezel: #050806;
+    --shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), 0 10px 30px -12px rgba(0, 0, 0, .6);
+    --tl1: 36%; --tl2: 24%; --tink: 86%;
+    --s-gezaaid-bg: #3A2D1C; --s-gezaaid-fg: #E9CFA8;
+    --s-ontkiemd-bg: #273A16; --s-ontkiemd-fg: #C5E59E;
+    --s-uitgeplant-bg: #1D4029; --s-uitgeplant-fg: #A9DDB9;
+    --s-geoogst-bg: #3D3010; --s-geoogst-fg: #F1D27E;
+    --s-mislukt-bg: #45201B; --s-mislukt-fg: #F4AFA5;
+    --s-overleden-bg: #262C28; --s-overleden-fg: #AEB7B1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A110D; --glow-1: #13261A; --glow-2: #172619;
+  --surface: #0F1813; --card: #16221B; --card-2: #1E2D24; --nav: #131F18;
+  --ink: #E3ECE4; --ink-2: #A8B8AC; --ink-3: #78897D;
+  --line: #2B3B31; --line-soft: #213027;
+  --primary: #8ED3A5; --on-primary: #0A2615; --primary-soft: #23482F; --on-primary-soft: #CBEBD4;
+  --sage: #5E875C;
+  --hero: linear-gradient(140deg, #1B4630 0%, #275A3B 45%, #4A7449 100%);
+  --on-hero: #EAF5E8;
+  --warn: #F2B26C; --warn-soft: #3A2913; --warn-ink: #F6D6B0;
+  --danger: #F29C92; --focus: #8ED3A5; --bezel: #050806;
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, .8), 0 10px 30px -12px rgba(0, 0, 0, .6);
+  --tl1: 36%; --tl2: 24%; --tink: 86%;
+  --s-gezaaid-bg: #3A2D1C; --s-gezaaid-fg: #E9CFA8;
+  --s-ontkiemd-bg: #273A16; --s-ontkiemd-fg: #C5E59E;
+  --s-uitgeplant-bg: #1D4029; --s-uitgeplant-fg: #A9DDB9;
+  --s-geoogst-bg: #3D3010; --s-geoogst-fg: #F1D27E;
+  --s-mislukt-bg: #45201B; --s-mislukt-fg: #F4AFA5;
+  --s-overleden-bg: #262C28; --s-overleden-fg: #AEB7B1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(55rem 38rem at 8% -5%, var(--glow-1), transparent 62%),
+    radial-gradient(48rem 40rem at 105% 105%, var(--glow-2), transparent 60%),
+    var(--bg);
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.ms {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
+  letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr;
+  display: inline-block; font-feature-settings: "liga"; -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+.ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+/* Until the icon font is loaded, keep the ligature text invisible so icon names never show as words. */
+html:not(.ms-ok) .ms { width: 1em; overflow: hidden; color: transparent !important; }
+
+/* Stage */
+.stage { display: flex; flex-wrap: wrap; gap: 56px; justify-content: center; align-items: flex-start; max-width: 1080px; margin: 0 auto; }
+.panel { flex: 0 1 300px; min-width: 0; padding-top: 28px; display: flex; flex-direction: column; gap: 22px; }
+.panel h1 { font-family: var(--font-display); font-size: 40px; line-height: 1; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+.panel .lead { margin: 10px 0 0; color: var(--ink-2); line-height: 1.5; font-size: 15px; }
+.panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 10px; }
+.jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+.jumps button { border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--ink-2); }
+.jumps button:hover { border-color: var(--primary); color: var(--ink); }
+.panel .foot { font-size: 13px; color: var(--ink-3); line-height: 1.5; margin: 0; }
+@media (max-width: 760px) {
+  .stage { gap: 28px; }
+  .panel { order: 2; flex-basis: 100%; padding-top: 0; }
+}
+
+/* Phone */
+.phone {
+  width: 392px; max-width: 100%;
+  height: clamp(640px, 88vh, 850px);
+  border: 10px solid var(--bezel);
+  border-radius: 46px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; overflow: hidden; position: relative;
+}
+.statusbar { flex: 0 0 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 13px; font-weight: 600; position: relative; font-variant-numeric: tabular-nums; }
+.statusbar::after { content: ""; position: absolute; left: 50%; top: 9px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--bezel); }
+.statusbar .ms { font-size: 17px; }
+.main { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+.scroll { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; position: relative; }
+.scroll::-webkit-scrollbar { display: none; }
+.screen { animation: enter .32s cubic-bezier(.2, .75, .25, 1); padding-bottom: 104px; }
+.screen.still, .screen.sub { animation: none; }
+.screen.sub { padding-bottom: 32px; }
+.screen.slide { animation: enter .32s cubic-bezier(.2, .75, .25, 1); }
+@keyframes enter { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+
+.navbar { flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 4px 4px; background: var(--nav); border-top: 1px solid var(--line-soft); }
+.navbtn { border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--ink-2); cursor: pointer; padding: 0 0 6px; }
+.navbtn .ind { width: 62px; height: 32px; border-radius: 16px; display: grid; place-items: center; transition: background .25s; }
+.navbtn.on { color: var(--ink); font-weight: 700; }
+.navbtn.on .ind { background: var(--primary-soft); color: var(--on-primary-soft); }
+.navbtn.on .ms { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+.gesture { flex: 0 0 18px; display: grid; place-items: center; background: var(--nav); }
+.gesture::after { content: ""; width: 116px; height: 4px; border-radius: 2px; background: var(--ink-3); opacity: .55; }
+.main.sub + .gesture { background: var(--surface); }
+
+/* Headers */
+.lt { padding: 18px 22px 10px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.lt h1 { font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.05; margin: 4px 0 0; letter-spacing: -.02em; }
+.appbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 4px; height: 62px; padding: 0 10px 0 6px; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.appbar h2 { flex: 1; margin: 0; font-family: var(--font-display); font-weight: 650; font-size: 21px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.iconbtn { width: 46px; height: 46px; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; cursor: pointer; flex: 0 0 46px; }
+.iconbtn:hover { background: var(--card-2); }
+
+/* Month ribbon */
+.ribbon { margin: 6px 16px 4px; padding: 18px 18px 14px; border-radius: 28px; background: var(--hero); color: var(--on-hero); position: relative; overflow: hidden; }
+.ribbon::before { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; border-radius: 50%; background: color-mix(in srgb, var(--on-hero) 10%, transparent); }
+.rtop { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
+.rm { font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: -.02em; text-transform: capitalize; }
+.rs { font-size: 14px; opacity: .88; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.ribbon .big { font-size: 44px; opacity: .9; }
+.bars { position: relative; display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 58px; margin-top: 14px; }
+.bar { border-radius: 6px 6px 3px 3px; background: color-mix(in srgb, var(--on-hero) 30%, transparent); min-height: 5px; }
+.bar.now { background: var(--on-hero); }
+.mls { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; margin-top: 6px; font-size: 11px; text-align: center; opacity: .75; font-weight: 600; }
+.mls .now { opacity: 1; font-weight: 800; }
+.rcap { font-size: 12px; opacity: .75; margin-top: 8px; }
+
+/* Sections and list items */
+.sh { display: flex; align-items: center; gap: 12px; padding: 22px 22px 10px; }
+.sh .ico { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; background: var(--card-2); color: var(--primary); }
+.sh h2 { margin: 0; font-family: var(--font-display); font-weight: 650; font-size: 21px; }
+.sh .cnt { margin-left: auto; font-size: 13px; color: var(--ink-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.list { display: flex; flex-direction: column; gap: 8px; padding: 0 14px; }
+.item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 11px 12px; border-radius: 22px; border: 1px solid var(--line-soft); background: var(--card); text-align: left; cursor: pointer; transition: transform .15s, border-color .15s; }
+.item:hover { border-color: var(--line); }
+.item:active { transform: scale(.985); }
+.item .t { flex: 1; min-width: 0; }
+.item .n { font-weight: 650; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item .s { font-size: 13px; color: var(--ink-2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.item .end { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.item .chev { color: var(--ink-3); font-size: 22px; }
+.thumb {
+  width: 54px; height: 54px; flex: 0 0 54px; border-radius: 17px; display: grid; place-items: center;
+  background: linear-gradient(140deg, hsl(var(--h) 42% var(--tl1)), hsl(calc(var(--h) + 28) 36% var(--tl2)));
+  background-size: cover; background-position: center;
+  color: hsl(var(--h) 45% var(--tink));
+}
+.thumb .ms { font-size: 27px; font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+.thumb.sm { width: 42px; height: 42px; flex-basis: 42px; border-radius: 13px; }
+.thumb.sm .ms { font-size: 21px; }
+.badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.badge .ms { font-size: 14px; }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.last { background: var(--primary-soft); color: var(--on-primary-soft); }
+.pill { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+.pill[data-s="gezaaid"], .sbtn.on[data-s="gezaaid"] { background: var(--s-gezaaid-bg); color: var(--s-gezaaid-fg); }
+.pill[data-s="ontkiemd"], .sbtn.on[data-s="ontkiemd"] { background: var(--s-ontkiemd-bg); color: var(--s-ontkiemd-fg); }
+.pill[data-s="uitgeplant"], .sbtn.on[data-s="uitgeplant"] { background: var(--s-uitgeplant-bg); color: var(--s-uitgeplant-fg); }
+.pill[data-s="geoogst"], .sbtn.on[data-s="geoogst"] { background: var(--s-geoogst-bg); color: var(--s-geoogst-fg); }
+.pill[data-s="mislukt"], .sbtn.on[data-s="mislukt"] { background: var(--s-mislukt-bg); color: var(--s-mislukt-fg); }
+.pill[data-s="overleden"], .sbtn.on[data-s="overleden"] { background: var(--s-overleden-bg); color: var(--s-overleden-fg); }
+.empty { margin: 0 14px; padding: 18px; border-radius: 22px; border: 1.5px dashed var(--line); color: var(--ink-2); font-size: 14px; display: flex; gap: 10px; align-items: center; }
+.empty .ms { color: var(--ink-3); }
+
+/* Search and chips */
+.search { display: flex; align-items: center; gap: 10px; height: 54px; margin: 6px 16px 14px; padding: 0 18px; border-radius: 27px; background: var(--card-2); color: var(--ink-2); }
+.search:focus-within { outline: 2px solid var(--primary); }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font: 15.5px var(--font-body); color: var(--ink); }
+.search input::placeholder { color: var(--ink-3); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 14px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { height: 36px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--line); background: transparent; color: var(--ink-2); font-weight: 650; font-size: 13.5px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.chip .c { font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; }
+.chip.on { background: var(--primary-soft); border-color: transparent; color: var(--on-primary-soft); }
+
+/* FAB */
+.fab { position: absolute; right: 18px; bottom: 18px; z-index: 6; height: 58px; padding: 0 22px 0 18px; border: 0; border-radius: 20px; background: var(--primary-soft); color: var(--on-primary-soft); display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 10px 24px -10px rgba(16, 48, 28, .55); }
+.fab:active { transform: scale(.97); }
+
+/* Detail */
+.hero { height: 268px; position: relative; display: grid; place-items: center; overflow: hidden;
+  background: linear-gradient(150deg, hsl(var(--h) 44% var(--tl1)), hsl(calc(var(--h) + 30) 38% var(--tl2)));
+  background-size: cover; background-position: center; color: hsl(var(--h) 45% var(--tink)); }
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; background: color-mix(in srgb, white 16%, transparent); }
+.hero::before { width: 260px; height: 260px; left: -90px; bottom: -120px; }
+.hero::after { width: 140px; height: 140px; right: -30px; top: 30px; }
+.hero.photo::before, .hero.photo::after { display: none; }
+.hero > .ms { font-size: 120px; position: relative; z-index: 1; font-variation-settings: "FILL" 1, "wght" 300, "GRAD" 0, "opsz" 24; }
+.hero .tb { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; z-index: 2; }
+.round { width: 46px; height: 46px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--ink); background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.sheet { position: relative; margin-top: -30px; border-radius: 30px 30px 0 0; background: var(--surface); padding: 26px 18px 8px; display: flex; flex-direction: column; gap: 14px; }
+.sheet h1 { font-family: var(--font-display); font-weight: 700; font-size: 31px; line-height: 1.08; margin: 4px 0 0; letter-spacing: -.02em; text-wrap: balance; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fact { min-width: 0; padding: 12px; border-radius: 18px; background: var(--card); border: 1px solid var(--line-soft); text-align: left; }
+.fact .ms { font-size: 20px; color: var(--primary); }
+.fact .k { margin-top: 8px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.fact .v { margin-top: 2px; font-weight: 650; font-size: 14px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+button.fact { cursor: pointer; }
+button.fact .v { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.card { padding: 16px; border-radius: 24px; background: var(--card); border: 1px solid var(--line-soft); }
+.card h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-family: var(--font-display); font-weight: 650; font-size: 16.5px; }
+.card h3 .ms { font-size: 20px; color: var(--primary); }
+.card p { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.cal { display: grid; grid-template-columns: 54px repeat(12, 1fr); gap: 3px; align-items: center; }
+.cal .ml { text-align: center; font-size: 10.5px; font-weight: 700; color: var(--ink-3); }
+.cal .ml.now { color: var(--primary); }
+.cal .rl { font-size: 12px; font-weight: 600; color: var(--ink-2); display: flex; align-items: center; gap: 3px; }
+.cal .rl .ms { font-size: 15px; }
+.cal .c { height: 24px; border-radius: 6px; background: var(--card-2); }
+.cal .c.in { background: var(--primary); }
+.cal .c.out { background: var(--sage); }
+.cal .c.now { box-shadow: inset 0 0 0 2px var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+.srow { display: flex; align-items: center; gap: 12px; }
+.srow .t { flex: 1; min-width: 0; }
+.srow .n { font-weight: 650; font-size: 15px; }
+.srow .s { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.mini { display: flex; flex-direction: column; }
+.mini button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 2px; border: 0; border-top: 1px solid var(--line-soft); background: none; text-align: left; cursor: pointer; }
+.mini button:first-child { border-top: 0; padding-top: 2px; }
+.mini .t { flex: 1; min-width: 0; font-size: 14px; }
+.mini .t small { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 1px; }
+.statusgrid { display: flex; flex-wrap: wrap; gap: 7px; }
+.sbtn { height: 36px; padding: 0 13px; border-radius: 12px; border: 1.5px solid var(--line); background: transparent; font-weight: 650; font-size: 13.5px; cursor: pointer; color: var(--ink-2); }
+.sbtn.on { border-color: transparent; }
+.mother { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 18px; background: var(--card-2); font-size: 14px; color: var(--ink-2); }
+.mother .ms { color: var(--primary); }
+.mother button { border: 0; background: none; padding: 0; font-weight: 700; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* Switch */
+.switch { width: 52px; height: 32px; flex: 0 0 52px; border-radius: 16px; border: 2px solid var(--ink-3); background: var(--card-2); position: relative; cursor: pointer; padding: 0; transition: background .2s, border-color .2s; }
+.switch::after { content: ""; position: absolute; left: 6px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-3); transition: all .2s; }
+.switch[aria-checked="true"] { background: var(--primary); border-color: var(--primary); }
+.switch[aria-checked="true"]::after { left: 22px; top: 2px; width: 24px; height: 24px; background: var(--on-primary); }
+
+/* Buttons */
+.btn { height: 54px; padding: 0 22px; border: 0; border-radius: 27px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+.btn.block { width: 100%; }
+.btn.primary { background: var(--primary); color: var(--on-primary); }
+.btn.tonal { background: var(--primary-soft); color: var(--on-primary-soft); }
+.btn.ghost { background: transparent; color: var(--danger); }
+.btn.sm { height: 40px; padding: 0 18px; font-size: 14px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:not(:disabled):active { transform: scale(.98); }
+
+/* Forms */
+.form { display: flex; flex-direction: column; gap: 14px; padding: 4px 18px 40px; }
+.photo-pick { position: relative; height: 168px; border-radius: 26px; border: 2px dashed var(--line); background-size: cover; background-position: center; display: grid; place-items: center; cursor: pointer; color: var(--ink-2); overflow: hidden; text-align: center; font-size: 14px; font-weight: 600; }
+.photo-pick.has { border-style: solid; border-color: transparent; color: #fff; }
+.photo-pick .ms { font-size: 34px; display: block; margin: 0 auto 6px; color: var(--primary); }
+.photo-pick.has .lbl { position: absolute; right: 12px; bottom: 12px; padding: 7px 12px; border-radius: 999px; background: rgba(0, 0, 0, .55); font-size: 13px; }
+.photo-pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fld label, .fld .lab { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.fld input, .fld select, .fld textarea { width: 100%; height: 52px; padding: 0 14px; border-radius: 15px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); font: 15.5px var(--font-body); }
+.fld textarea { height: 96px; padding: 13px 14px; resize: vertical; line-height: 1.45; }
+.fld input:focus, .fld select:focus, .fld textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+.fld .hint { font-size: 12.5px; color: var(--ink-3); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2.qty { grid-template-columns: 1fr 1.3fr; }
+.grp { display: flex; align-items: center; gap: 8px; margin: 10px 0 -2px; font-family: var(--font-display); font-weight: 650; font-size: 17px; }
+.grp .ms { color: var(--primary); font-size: 21px; }
+.err { padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); font-size: 14px; font-weight: 600; }
+
+/* Menu, notes, segmented */
+.menu { display: flex; flex-direction: column; gap: 10px; padding: 6px 16px; }
+.menu button { display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-radius: 24px; border: 1px solid var(--line-soft); background: var(--card); text-align: left; cursor: pointer; }
+.menu .ico { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--primary-soft); color: var(--on-primary-soft); flex: 0 0 48px; }
+.menu .t { flex: 1; min-width: 0; }
+.menu .n { font-weight: 700; font-size: 16px; }
+.menu .s { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.about { margin: 22px 22px 0; font-size: 13px; color: var(--ink-3); line-height: 1.5; display: flex; gap: 10px; }
+.note { display: flex; gap: 12px; padding: 14px 16px; border-radius: 20px; background: var(--warn-soft); color: var(--warn-ink); font-size: 14px; line-height: 1.45; }
+.note .ms { color: var(--warn); }
+.note.calm { background: var(--card-2); color: var(--ink-2); }
+.note.calm .ms { color: var(--primary); }
+.note .btn { margin-top: 10px; }
+.stack { display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 0; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { height: 44px; border: 0; background: transparent; color: var(--ink-2); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button.on { background: var(--primary-soft); color: var(--on-primary-soft); }
+.seg button .ms { font-size: 18px; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.stats span { padding: 6px 11px; border-radius: 999px; background: var(--card-2); font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.file { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--card-2); margin-bottom: 12px; }
+.file .ms { color: var(--primary); }
+.file .t { flex: 1; min-width: 0; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+.file small { display: block; font-weight: 500; color: var(--ink-2); margin-top: 2px; }
+.desc { font-size: 13px; color: var(--ink-2); margin: 10px 2px 14px; line-height: 1.45; }
+.big-ico { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; background: var(--primary-soft); color: var(--on-primary-soft); margin-bottom: 12px; }
+
+/* Dialog and toast */
+.scrim { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px; background: rgba(6, 14, 9, .45); animation: fade .2s; }
+.dialog { width: 100%; max-width: 320px; padding: 24px 22px 14px; border-radius: 30px; background: var(--card); animation: pop .24s cubic-bezier(.2, .8, .3, 1.2); }
+.dialog .ms { color: var(--danger); font-size: 28px; }
+.dialog h3 { margin: 12px 0 8px; font-family: var(--font-display); font-weight: 650; font-size: 22px; }
+.dialog p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; }
+.dialog .acts { display: flex; justify-content: flex-end; gap: 4px; margin-top: 18px; }
+.dialog .acts button { height: 42px; padding: 0 16px; border: 0; border-radius: 21px; background: transparent; font-weight: 700; font-size: 14.5px; color: var(--primary); cursor: pointer; }
+.dialog .acts button.danger { color: var(--danger); }
+.toast { position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 40; padding: 14px 18px; border-radius: 16px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; display: flex; gap: 10px; align-items: center; transform: translateY(160%); transition: transform .3s cubic-bezier(.2, .8, .3, 1); }
+.toast.show { transform: none; }
+.toast .ms { font-size: 20px; }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(.92); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="statusbar"><span id="clock">9:41</span><span><span class="ms">signal_cellular_alt</span> <span class="ms">wifi</span> <span class="ms">battery_full</span></span></div>
+    <div class="main" id="main">
+      <div class="scroll" id="scroll"></div>
+      <div id="fab"></div>
+      <div id="dlg"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <nav class="navbar" id="nav" aria-label="Hoofdmenu">
+      <button class="navbtn" data-act="tab" data-tab="home"><span class="ind"><span class="ms">psychiatry</span></span>Nu zaaibaar</button>
+      <button class="navbtn" data-act="tab" data-tab="seeds"><span class="ind"><span class="ms">grain</span></span>Zaden</button>
+      <button class="navbtn" data-act="tab" data-tab="plants"><span class="ind"><span class="ms">potted_plant</span></span>Planten</button>
+      <button class="navbtn" data-act="tab" data-tab="more"><span class="ind"><span class="ms">more_horiz</span></span>Meer</button>
+    </nav>
+    <div class="gesture"></div>
+  </div>
+
+  <aside class="panel">
+    <div>
+      <div class="eyebrow">Klikbaar prototype</div>
+      <h1>Plant Keeper</h1>
+      <p class="lead">Alle MVP-schermen uit de wireframes, nu met kleur, iconen en voorbeelddata. Tik door de app zoals op je telefoon.</p>
+    </div>
+    <div>
+      <h2>Spring naar scherm</h2>
+      <div class="jumps">
+        <button data-act="jump" data-to="home">Nu zaaibaar</button>
+        <button data-act="jump" data-to="seeds">Zaden</button>
+        <button data-act="jump" data-to="seedDetail">Zaad-detail</button>
+        <button data-act="jump" data-to="seedForm">Zaad toevoegen</button>
+        <button data-act="jump" data-to="plants">Planten</button>
+        <button data-act="jump" data-to="plantDetail">Plant-detail</button>
+        <button data-act="jump" data-to="plantForm">Plant toevoegen</button>
+        <button data-act="jump" data-to="more">Meer</button>
+        <button data-act="jump" data-to="reminders">Herinneringen</button>
+        <button data-act="jump" data-to="backup">Backup</button>
+      </div>
+    </div>
+    <div>
+      <h2>Thema</h2>
+      <div class="seg" style="max-width: 300px">
+        <button data-act="theme" data-t="light" id="th-light"><span class="ms">light_mode</span>Licht</button>
+        <button data-act="theme" data-t="dark" id="th-dark"><span class="ms">dark_mode</span>Donker</button>
+      </div>
+    </div>
+    <p class="foot">Voorbeelddata. Wat je toevoegt of wijzigt verdwijnt bij herladen. Export en import zijn gesimuleerd, er wordt geen bestand gemaakt of gelezen.</p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var M = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
+  var MS = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+  var ML = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+  var UNITS = ["zakje", "bus", "bollen", "gram", "stuks"];
+  var STATUSES = ["gezaaid", "ontkiemd", "uitgeplant", "geoogst", "mislukt", "overleden"];
+  var today = new Date();
+  var CM = today.getMonth() + 1, CY = today.getFullYear();
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  var TODAY_ISO = CY + "-" + pad(CM) + "-" + pad(today.getDate());
+  var uid = 100;
+  function newId(p) { uid += 1; return p + uid; }
+
+  var seeds = [
+    { id: "s1", naam: "Tomaat 'Moneymaker'", soort: "Tomaat", qty: 2, unit: "zakje", houdbaar: 2025, locatie: "Bus 1, keukenkast", notities: "Oude zakjes van opa. Kiemt nog redelijk.", binnen: [2, 4], buiten: null, herinnering: true, hue: 6, icon: "nutrition" },
+    { id: "s2", naam: "Paprika 'California Wonder'", soort: "Paprika", qty: 1, unit: "zakje", houdbaar: 2027, locatie: "Bus 1, keukenkast", notities: "", binnen: [1, 3], buiten: null, herinnering: true, hue: 28, icon: "nutrition" },
+    { id: "s3", naam: "Basilicum 'Genovese'", soort: "Kruid", qty: 1, unit: "zakje", houdbaar: 2027, locatie: "Kruidenla", notities: "Pas buiten als het 's nachts boven de 12 graden blijft.", binnen: [3, 5], buiten: [6, 7], herinnering: false, hue: 125, icon: "spa" },
+    { id: "s4", naam: "Alfalfa", soort: "Kiemgroente", qty: 50, unit: "gram", houdbaar: 2027, locatie: "Pot op het aanrecht", notities: "Kiempot, twee keer per dag spoelen.", binnen: [1, 12], buiten: null, herinnering: false, hue: 80, icon: "grass" },
+    { id: "s5", naam: "Amaryllis 'Red Lion'", soort: "Bol", qty: 3, unit: "bollen", houdbaar: 2026, locatie: "Kelder, krat", notities: "", binnen: [10, 1], buiten: null, herinnering: true, hue: 350, icon: "local_florist" },
+    { id: "s6", naam: "Knoflook 'Thermidrome'", soort: "Knoflook", qty: 2, unit: "bollen", houdbaar: 2026, locatie: "Schuur, mand", notities: "Teentjes 5 cm diep, punt omhoog.", binnen: null, buiten: [10, 11], herinnering: true, hue: 48, icon: "psychiatry" },
+    { id: "s7", naam: "Tulp 'Queen of Night'", soort: "Bol", qty: 20, unit: "bollen", houdbaar: 2026, locatie: "Schuur, papieren zak", notities: "", binnen: null, buiten: [9, 12], herinnering: false, hue: 285, icon: "local_florist" },
+    { id: "s8", naam: "Tuinboon 'Witkiem'", soort: "Peulvrucht", qty: 1, unit: "bus", houdbaar: 2028, locatie: "Bus 3, kast", notities: "Winterhard. Een zaaiing in november geeft een vroege oogst.", binnen: [1, 2], buiten: [11, 3], herinnering: true, hue: 105, icon: "eco" },
+    { id: "s9", naam: "Wortel 'Nantes 2'", soort: "Wortel", qty: 3, unit: "zakje", houdbaar: 2026, locatie: "Bus 2, kast", notities: "", binnen: null, buiten: [3, 7], herinnering: true, hue: 30, icon: "grass" },
+    { id: "s10", naam: "Sla 'Eikenblad'", soort: "Sla", qty: 2, unit: "zakje", houdbaar: 2024, locatie: "Bus 2, kast", notities: "", binnen: [2, 3], buiten: [3, 8], herinnering: false, hue: 92, icon: "eco" },
+    { id: "s11", naam: "Pompoen 'Butternut'", soort: "Pompoen", qty: 10, unit: "stuks", houdbaar: 2028, locatie: "Bus 3, kast", notities: "", binnen: [4, 5], buiten: [5, 6], herinnering: true, hue: 34, icon: "nutrition" },
+    { id: "s12", naam: "Goudsbloem (eigen zaad)", soort: "Bloem", qty: 30, unit: "gram", houdbaar: 2029, locatie: "Envelop, bureaula", notities: "", binnen: null, buiten: [3, 5], herinnering: false, hue: 42, icon: "filter_vintage", moederId: "p5", oogstDatum: "2026-09-02" }
+  ];
+  var plants = [
+    { id: "p1", seedId: "s1", naam: "Tomaat 'Moneymaker'", zaaidatum: "2026-02-14", locatie: "Vensterbank keuken", status: "geoogst", oogstDatum: "2026-08-10", oogstTekst: "Ongeveer 6 kg, vooral in augustus.", notities: "", hue: 6, icon: "nutrition" },
+    { id: "p2", seedId: "s1", naam: "Tomaat 'Moneymaker'", zaaidatum: "2026-03-28", locatie: "Kas, bak 2", status: "mislukt", notities: "Schimmel na een koude week.", hue: 6, icon: "nutrition" },
+    { id: "p3", seedId: "s2", naam: "Paprika 'California Wonder'", zaaidatum: "2026-03-02", locatie: "Kas, bak 1", status: "uitgeplant", notities: "", hue: 28, icon: "nutrition" },
+    { id: "p4", seedId: "s3", naam: "Basilicum 'Genovese'", zaaidatum: "2026-04-20", locatie: "Balkon, pot", status: "overleden", notities: "Te weinig water tijdens de vakantie.", hue: 125, icon: "spa" },
+    { id: "p5", seedId: null, naam: "Goudsbloem", zaaidatum: "2026-04-10", locatie: "Moestuin, rand", status: "geoogst", oogstDatum: "2026-09-02", oogstTekst: "Zaad gewonnen, ongeveer 30 gram.", notities: "Zaailing van de markt.", hue: 42, icon: "filter_vintage" },
+    { id: "p6", seedId: "s6", naam: "Knoflook 'Thermidrome'", zaaidatum: "2026-10-18", locatie: "Moestuin, bak 1", status: "gezaaid", notities: "", hue: 48, icon: "psychiatry" },
+    { id: "p7", seedId: "s7", naam: "Tulp 'Queen of Night'", zaaidatum: "2026-11-02", locatie: "Voortuin", status: "gezaaid", notities: "", hue: 285, icon: "local_florist" },
+    { id: "p8", seedId: "s4", naam: "Alfalfa", zaaidatum: "2026-11-20", locatie: "Aanrecht", status: "ontkiemd", notities: "", hue: 80, icon: "grass" },
+    { id: "p9", seedId: null, naam: "Munt van de buren", zaaidatum: "2026-06-05", locatie: "Terras, pot", status: "uitgeplant", notities: "Stekje gekregen.", hue: 150, icon: "spa" }
+  ];
+
+  var state = { stack: [{ name: "home" }], q: "", filter: "alle", draft: null, notifAllowed: false, lastExport: null, zip: null, mode: "merge", dlg: null };
+
+  /* helpers */
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function ic(n, cls) { return '<span class="ms ' + (cls || "") + '" aria-hidden="true">' + n + "</span>"; }
+  function inRange(m, r) { return !!r && (r[0] <= r[1] ? m >= r[0] && m <= r[1] : m >= r[0] || m <= r[1]); }
+  function fullYear(r) { return r && r[0] === 1 && r[1] === 12; }
+  function period(r) { return !r ? "geen" : fullYear(r) ? "hele jaar" : MS[r[0] - 1] + " t/m " + MS[r[1] - 1]; }
+  function expired(s) { return s.houdbaar && s.houdbaar < CY; }
+  function qtyText(q, u) {
+    if (u === "zakje") return q == 1 ? "1 zakje" : q + " zakjes";
+    if (u === "bus") return q == 1 ? "1 bus" : q + " bussen";
+    if (u === "bollen") return q == 1 ? "1 bol" : q + " bollen";
+    return q + " " + u;
+  }
+  function fmtDate(iso) { if (!iso) return ""; var p = iso.split("-").map(Number); return p[2] + " " + MS[p[1] - 1] + " " + p[0]; }
+  function byName(a, b) { return a.naam.localeCompare(b.naam, "nl"); }
+  function seedById(id) { return seeds.find(function (s) { return s.id === id; }); }
+  function plantById(id) { return plants.find(function (p) { return p.id === id; }); }
+  function hueFor(str) { var h = 0; for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360; return h; }
+  function look(o) { return o.photo ? "background-image:url('" + o.photo + "')" : "--h:" + o.hue; }
+  function thumb(o, cls) { return '<div class="thumb ' + (cls || "") + '" style="' + look(o) + '">' + (o.photo ? "" : ic(o.icon)) + "</div>"; }
+  function nextReminder(s) {
+    var starts = [];
+    [s.binnen, s.buiten].forEach(function (r) { if (r && starts.indexOf(r[0]) < 0) starts.push(r[0]); });
+    if (!starts.length) return null;
+    var t0 = new Date(CY, CM - 1, today.getDate()), best = null;
+    starts.forEach(function (m) {
+      var d = new Date(CY, m - 1, 1);
+      if (d < t0) d = new Date(CY + 1, m - 1, 1);
+      if (!best || d < best) best = d;
+    });
+    return "1 " + M[best.getMonth()] + " " + best.getFullYear();
+  }
+  function sw(on, act, id, label) { return '<button class="switch" role="switch" aria-label="' + esc(label) + '" aria-checked="' + on + '" data-act="' + act + '" data-id="' + id + '"></button>'; }
+
+  /* screens */
+  var S = {};
+
+  S.home = function () {
+    var bin = seeds.filter(function (s) { return inRange(CM, s.binnen); }).sort(byName);
+    var bui = seeds.filter(function (s) { return inRange(CM, s.buiten); }).sort(byName);
+    var counts = [], max = 1;
+    for (var m = 1; m <= 12; m++) {
+      var c = seeds.filter(function (s) { return inRange(m, s.binnen) || inRange(m, s.buiten); }).length;
+      counts.push(c); if (c > max) max = c;
+    }
+    var bars = counts.map(function (c, i) { return '<div class="bar' + (i + 1 === CM ? " now" : "") + '" style="height:' + Math.max(8, Math.round(c / max * 100)) + '%" title="' + M[i] + ": " + c + ' zaden"></div>'; }).join("");
+    var letters = ML.map(function (l, i) { return '<span class="' + (i + 1 === CM ? "now" : "") + '">' + l + "</span>"; }).join("");
+    function sec(title, icon, list, key) {
+      var rows = list.map(function (s) {
+        var r = s[key], b = "";
+        if (expired(s)) b += '<span class="badge warn">' + ic("hourglass_disabled") + "verlopen</span>";
+        if (!fullYear(r) && r[1] === CM) b += '<span class="badge last">laatste maand</span>';
+        return '<button class="item" data-act="seed" data-id="' + s.id + '">' + thumb(s) +
+          '<div class="t"><div class="n">' + esc(s.naam) + '</div><div class="s">' + qtyText(s.qty, s.unit) + " · " + (fullYear(r) ? "hele jaar" : "t/m " + MS[r[1] - 1]) + "</div></div>" +
+          (b ? '<div class="end">' + b + "</div>" : ic("chevron_right", "chev")) + "</button>";
+      }).join("");
+      return '<div class="sh"><div class="ico">' + ic(icon, "fill") + "</div><h2>" + title + '</h2><span class="cnt">' + list.length + " zaden</span></div>" +
+        (list.length ? '<div class="list">' + rows + "</div>" : '<div class="empty">' + ic("bedtime") + "Niets om " + title.toLowerCase() + " te zaaien in " + M[CM - 1] + ".</div>");
+    }
+    return '<header class="lt"><div class="eyebrow">Zaaikalender</div><h1>Nu zaaibaar</h1></header>' +
+      '<section class="ribbon"><div class="rtop"><div><div class="rm">' + M[CM - 1] + " " + CY + '</div><div class="rs">' + bin.length + " binnen · " + bui.length + " buiten</div></div>" + ic("wb_sunny", "big fill") + "</div>" +
+      '<div class="bars">' + bars + '</div><div class="mls">' + letters + '</div><div class="rcap">Zaaibare zaden per maand</div></section>' +
+      sec("Binnen", "house", bin, "binnen") + sec("Buiten", "yard", bui, "buiten");
+  };
+
+  function seedRows() {
+    var q = state.q.trim().toLowerCase();
+    var list = seeds.filter(function (s) { return !q || s.naam.toLowerCase().indexOf(q) >= 0; }).sort(byName);
+    if (!list.length) return '<div class="empty">' + ic("search_off") + "Geen zaden gevonden voor &lsquo;" + esc(state.q) + "&rsquo;.</div>";
+    return '<div class="list">' + list.map(function (s) {
+      return '<button class="item" data-act="seed" data-id="' + s.id + '">' + thumb(s) +
+        '<div class="t"><div class="n">' + esc(s.naam) + '</div><div class="s">' + qtyText(s.qty, s.unit) + " · " + esc(s.locatie || s.soort) + "</div></div>" +
+        (expired(s) ? '<span class="badge warn">' + ic("hourglass_disabled") + "verlopen</span>" : ic("chevron_right", "chev")) + "</button>";
+    }).join("") + "</div>";
+  }
+  S.seeds = function () {
+    return '<header class="lt"><div class="eyebrow">' + seeds.length + ' soorten in voorraad</div><h1>Zaden</h1></header>' +
+      '<label class="search">' + ic("search") + '<input id="q" type="search" placeholder="Zoek op naam" autocomplete="off" value="' + esc(state.q) + '"></label>' +
+      '<div id="seedlist">' + seedRows() + "</div>";
+  };
+
+  S.seedDetail = function (p) {
+    var s = seedById(p.id);
+    if (!s) return S.seeds();
+    var linked = plants.filter(function (x) { return x.seedId === s.id; }).sort(function (a, b) { return a.zaaidatum < b.zaaidatum ? 1 : -1; });
+    var mother = s.moederId && plantById(s.moederId);
+    var head = '<div class="cal"><span></span>' + ML.map(function (l, i) { return '<span class="ml' + (i + 1 === CM ? " now" : "") + '">' + l + "</span>"; }).join("");
+    function row(label, icon, r, cls) {
+      var cells = "";
+      for (var m = 1; m <= 12; m++) cells += '<span class="c' + (inRange(m, r) ? " " + cls : "") + (m === CM ? " now" : "") + '"></span>';
+      return '<span class="rl">' + ic(icon) + label + "</span>" + cells;
+    }
+    var rem = nextReminder(s);
+    var plantsHtml = linked.length ? '<div class="mini">' + linked.map(function (x) {
+      return '<button data-act="plant" data-id="' + x.id + '">' + ic("event", "") + '<span class="t">' + fmtDate(x.zaaidatum) + "<small>" + esc(x.locatie || "Geen locatie") + '</small></span><span class="pill" data-s="' + x.status + '">' + x.status + "</span></button>";
+    }).join("") + "</div>" : "<p>Nog niet gezaaid. Tik op Zaaien om de eerste zaai vast te leggen.</p>";
+    return '<div class="hero' + (s.photo ? " photo" : "") + '" style="' + look(s) + '">' +
+      '<div class="tb"><button class="round" data-act="back" aria-label="Terug">' + ic("arrow_back") + '</button><button class="round" data-act="editSeed" data-id="' + s.id + '" aria-label="Bewerken">' + ic("edit") + "</button></div>" +
+      (s.photo ? "" : ic(s.icon)) + "</div>" +
+      '<div class="sheet"><div><div class="eyebrow">' + esc(s.soort || "Zaad") + "</div><h1>" + esc(s.naam) + "</h1></div>" +
+      (expired(s) ? '<div class="badges"><span class="badge warn">' + ic("hourglass_disabled") + "Verlopen sinds " + s.houdbaar + "</span></div>" : "") +
+      '<div class="facts"><div class="fact">' + ic("scale") + '<div class="k">Voorraad</div><div class="v">' + qtyText(s.qty, s.unit) + '</div></div>' +
+      '<div class="fact">' + ic("hourglass_bottom") + '<div class="k">Houdbaar</div><div class="v">t/m ' + (s.houdbaar || "?") + '</div></div>' +
+      '<div class="fact">' + ic("inventory_2") + '<div class="k">Bewaarplek</div><div class="v">' + esc(s.locatie || "Onbekend") + "</div></div></div>" +
+      (mother ? '<div class="mother">' + ic("recycling") + '<span>Gewonnen van <button data-act="plant" data-id="' + mother.id + '">' + esc(mother.naam) + "</button>" + (s.oogstDatum ? " op " + fmtDate(s.oogstDatum) : "") + "</span></div>" : "") +
+      '<div class="card"><h3>' + ic("calendar_month") + "Zaaitijden</h3>" + head + row("Binnen", "house", s.binnen, "in") + row("Buiten", "yard", s.buiten, "out") + "</div>" +
+      '<div class="legend"><span><i style="background:var(--primary)"></i>Binnen ' + period(s.binnen) + '</span><span><i style="background:var(--sage)"></i>Buiten ' + period(s.buiten) + "</span></div></div>" +
+      '<div class="card"><div class="srow">' + ic(s.herinnering ? "notifications_active" : "notifications_off") + '<div class="t"><div class="n">Herinnering</div><div class="s">' +
+      (rem ? (s.herinnering ? "Volgende melding op " + rem : "Uit. Zet aan voor een melding op " + rem) : "Geen zaaiperiode ingesteld") + "</div></div>" + sw(s.herinnering, "toggleRem", s.id, "Herinnering voor " + s.naam) + "</div></div>" +
+      '<button class="btn primary block" data-act="sow" data-id="' + s.id + '">' + ic("psychiatry") + "Zaaien</button>" +
+      '<div class="card"><h3>' + ic("potted_plant") + "Gezaaid (" + linked.length + ")</h3>" + plantsHtml + "</div>" +
+      (s.notities ? '<div class="card"><h3>' + ic("sticky_note_2") + "Notities</h3><p>" + esc(s.notities) + "</p></div>" : "") +
+      '<button class="btn ghost block" data-act="delSeed" data-id="' + s.id + '">' + ic("delete") + "Zaad verwijderen</button></div>";
+  };
+
+  function monthOpts(v) {
+    var o = '<option value="">Geen</option>';
+    for (var m = 1; m <= 12; m++) o += '<option value="' + m + '"' + (v === m ? " selected" : "") + ">" + M[m - 1] + "</option>";
+    return o;
+  }
+  function photoPick(d) {
+    return '<label class="photo-pick' + (d.photo ? " has" : "") + '" id="photo-pick" style="' + (d.photo ? "background-image:url('" + d.photo + "')" : "") + '">' +
+      (d.photo ? '<span class="lbl">Andere foto</span>' : "<span>" + ic("add_a_photo") + "Foto kiezen<br><small style=\"font-weight:500;color:var(--ink-3)\">Optioneel, wordt verkleind tot 1024 px</small></span>") +
+      '<input id="f-photo" type="file" accept="image/*" aria-label="Foto kiezen"></label>';
+  }
+  S.seedForm = function () {
+    var d = state.draft;
+    var units = UNITS.map(function (u) { return '<option value="' + u + '"' + (d.unit === u ? " selected" : "") + ">" + u + "</option>"; }).join("");
+    return '<div class="appbar"><button class="iconbtn" data-act="back" aria-label="Annuleren">' + ic("close") + "</button><h2>" + (d.id ? "Zaad bewerken" : d.moederId ? "Zaad winnen" : "Nieuw zaad") + '</h2><button class="btn primary sm" data-act="saveSeed">Opslaan</button></div>' +
+      '<div class="form"><div class="err" id="f-err" hidden></div>' + photoPick(d) +
+      (d.moederId ? '<div class="mother">' + ic("recycling") + "<span>Gekoppeld aan moederplant <b>" + esc((plantById(d.moederId) || {}).naam) + "</b></span></div>" : "") +
+      '<div class="fld"><label for="f-naam">Naam</label><input id="f-naam" value="' + esc(d.naam) + '" placeholder="Bijvoorbeeld Tomaat \'Moneymaker\'"></div>' +
+      '<div class="fld"><label for="f-soort">Soort</label><input id="f-soort" value="' + esc(d.soort) + '" placeholder="Tomaat, kruid, bol..."></div>' +
+      '<div class="row2 qty"><div class="fld"><label for="f-qty">Hoeveelheid</label><input id="f-qty" type="number" min="0" inputmode="decimal" value="' + esc(d.qty) + '"></div>' +
+      '<div class="fld"><label for="f-unit">Eenheid</label><select id="f-unit">' + units + "</select></div></div>" +
+      '<div class="fld"><span class="hint">Een schatting is genoeg. De voorraad gaat niet automatisch omlaag bij zaaien.</span></div>' +
+      '<div class="row2"><div class="fld"><label for="f-houdbaar">Houdbaar tot (jaar)</label><input id="f-houdbaar" type="number" inputmode="numeric" value="' + esc(d.houdbaar) + '"></div>' +
+      (d.moederId ? '<div class="fld"><label for="f-oogst">Zaad geoogst op</label><input id="f-oogst" type="date" value="' + esc(d.oogstDatum) + '"></div>' : '<div class="fld"><label for="f-loc">Bewaarplek</label><input id="f-loc" value="' + esc(d.locatie) + '" placeholder="Bus 3, kast"></div>') + "</div>" +
+      (d.moederId ? '<div class="fld"><label for="f-loc">Bewaarplek</label><input id="f-loc" value="' + esc(d.locatie) + '" placeholder="Bus 3, kast"></div>' : "") +
+      '<div class="grp">' + ic("house") + "Zaaitijd binnen</div>" +
+      '<div class="row2"><div class="fld"><label for="f-bs">Van</label><select id="f-bs">' + monthOpts(d.binnen && d.binnen[0]) + '</select></div><div class="fld"><label for="f-be">Tot en met</label><select id="f-be">' + monthOpts(d.binnen && d.binnen[1]) + "</select></div></div>" +
+      '<div class="grp">' + ic("yard") + "Zaaitijd buiten</div>" +
+      '<div class="row2"><div class="fld"><label for="f-os">Van</label><select id="f-os">' + monthOpts(d.buiten && d.buiten[0]) + '</select></div><div class="fld"><label for="f-oe">Tot en met</label><select id="f-oe">' + monthOpts(d.buiten && d.buiten[1]) + "</select></div></div>" +
+      '<div class="fld"><span class="hint">Een periode mag over de jaarwissel lopen, bijvoorbeeld november t/m maart.</span></div>' +
+      '<div class="fld"><label for="f-not">Notities</label><textarea id="f-not">' + esc(d.notities) + "</textarea></div></div>";
+  };
+
+  S.plants = function () {
+    var counts = {};
+    plants.forEach(function (p) { counts[p.status] = (counts[p.status] || 0) + 1; });
+    var chips = '<button class="chip' + (state.filter === "alle" ? " on" : "") + '" data-act="filter" data-s="alle">Alle <span class="c">' + plants.length + "</span></button>" +
+      STATUSES.map(function (s) { return '<button class="chip' + (state.filter === s ? " on" : "") + '" data-act="filter" data-s="' + s + '">' + s.charAt(0).toUpperCase() + s.slice(1) + ' <span class="c">' + (counts[s] || 0) + "</span></button>"; }).join("");
+    var list = plants.filter(function (p) { return state.filter === "alle" || p.status === state.filter; }).sort(function (a, b) { return a.zaaidatum < b.zaaidatum ? 1 : -1; });
+    var rows = list.length ? '<div class="list">' + list.map(function (p) {
+      return '<button class="item" data-act="plant" data-id="' + p.id + '">' + thumb(p) + '<div class="t"><div class="n">' + esc(p.naam) + '</div><div class="s">' + fmtDate(p.zaaidatum) + " · " + esc(p.locatie || "Geen locatie") + '</div></div><span class="pill" data-s="' + p.status + '">' + p.status + "</span></button>";
+    }).join("") + "</div>" : '<div class="empty">' + ic("filter_alt_off") + "Geen planten met deze status.</div>";
+    return '<header class="lt"><div class="eyebrow">' + plants.length + ' keer gezaaid</div><h1>Planten</h1></header><div class="chips" role="group" aria-label="Filter op status">' + chips + "</div>" + rows;
+  };
+
+  S.plantDetail = function (p) {
+    var x = plantById(p.id);
+    if (!x) return S.plants();
+    var seed = x.seedId && seedById(x.seedId);
+    var status = STATUSES.map(function (s) { return '<button class="sbtn' + (x.status === s ? " on" : "") + '" data-s="' + s + '" data-act="setStatus" data-id="' + x.id + '" aria-pressed="' + (x.status === s) + '">' + s + "</button>"; }).join("");
+    return '<div class="hero' + (x.photo ? " photo" : "") + '" style="' + look(x) + '">' +
+      '<div class="tb"><button class="round" data-act="back" aria-label="Terug">' + ic("arrow_back") + '</button><button class="round" data-act="editPlant" data-id="' + x.id + '" aria-label="Bewerken">' + ic("edit") + "</button></div>" +
+      (x.photo ? "" : ic(x.icon)) + "</div>" +
+      '<div class="sheet"><div><div class="eyebrow">' + (seed ? esc(seed.soort) : "Losse plant") + "</div><h1>" + esc(x.naam) + "</h1></div>" +
+      '<div class="card"><h3>' + ic("timeline") + 'Status</h3><div class="statusgrid">' + status + "</div></div>" +
+      '<div class="facts"><div class="fact">' + ic("event") + '<div class="k">Gezaaid</div><div class="v">' + fmtDate(x.zaaidatum) + "</div></div>" +
+      '<div class="fact">' + ic("location_on") + '<div class="k">Locatie</div><div class="v">' + esc(x.locatie || "Onbekend") + "</div></div>" +
+      (seed ? '<button class="fact" data-act="seed" data-id="' + seed.id + '">' + ic("grain") + '<div class="k">Zaad</div><div class="v">Bekijk zaad</div></button>' : '<div class="fact">' + ic("link_off") + '<div class="k">Zaad</div><div class="v">Geen</div></div>') + "</div>" +
+      '<div class="card"><h3>' + ic("agriculture") + "Oogst</h3>" +
+      (x.oogstDatum ? '<div class="srow"><div class="t"><div class="n">' + fmtDate(x.oogstDatum) + '</div><div class="s">' + esc(x.oogstTekst || "") + "</div></div></div>" : "<p>Nog niet geoogst. Vul een oogstdatum in via bewerken.</p>") +
+      '<button class="btn tonal block" style="margin-top:14px" data-act="harvestSeed" data-id="' + x.id + '">' + ic("recycling") + "Maak zaad van deze plant</button></div>" +
+      (x.notities ? '<div class="card"><h3>' + ic("sticky_note_2") + "Notities</h3><p>" + esc(x.notities) + "</p></div>" : "") +
+      '<button class="btn ghost block" data-act="delPlant" data-id="' + x.id + '">' + ic("delete") + "Plant verwijderen</button></div>";
+  };
+
+  S.plantForm = function () {
+    var d = state.draft;
+    var opts = '<option value="">Losse plant (zonder zaad)</option>' + seeds.slice().sort(byName).map(function (s) { return '<option value="' + s.id + '"' + (d.seedId === s.id ? " selected" : "") + ">" + esc(s.naam) + "</option>"; }).join("");
+    var st = STATUSES.map(function (s) { return '<option value="' + s + '"' + (d.status === s ? " selected" : "") + ">" + s + "</option>"; }).join("");
+    return '<div class="appbar"><button class="iconbtn" data-act="back" aria-label="Annuleren">' + ic("close") + "</button><h2>" + (d.id ? "Plant bewerken" : "Nieuwe plant") + '</h2><button class="btn primary sm" data-act="savePlant">Opslaan</button></div>' +
+      '<div class="form"><div class="err" id="f-err" hidden></div>' +
+      '<div class="fld"><label for="f-seed">Zaad</label><select id="f-seed">' + opts + "</select></div>" +
+      '<div class="fld"><label for="f-naam">Naam</label><input id="f-naam" value="' + esc(d.naam) + '" placeholder="Naam van de plant"><span class="hint">Neemt de naam van het zaad over. De plant houdt deze naam ook als het zaad later verdwijnt.</span></div>' +
+      '<div class="row2"><div class="fld"><label for="f-datum">Zaaidatum</label><input id="f-datum" type="date" value="' + esc(d.zaaidatum) + '"></div>' +
+      '<div class="fld"><label for="f-status">Status</label><select id="f-status">' + st + "</select></div></div>" +
+      '<div class="fld"><label for="f-loc">Locatie</label><input id="f-loc" value="' + esc(d.locatie) + '" placeholder="Vensterbank, bak 2..."></div>' +
+      '<div class="grp">' + ic("agriculture") + "Oogst</div>" +
+      '<div class="fld"><label for="f-odatum">Oogstdatum</label><input id="f-odatum" type="date" value="' + esc(d.oogstDatum) + '"></div>' +
+      '<div class="fld"><label for="f-otekst">Hoeveelheid en notitie</label><input id="f-otekst" value="' + esc(d.oogstTekst) + '" placeholder="Bijvoorbeeld 2 kg, mooie vruchten"></div>' +
+      '<div class="fld"><label for="f-not">Notities</label><textarea id="f-not">' + esc(d.notities) + "</textarea></div>" + photoPick(d) + "</div>";
+  };
+
+  S.more = function () {
+    var on = seeds.filter(function (s) { return s.herinnering; }).length;
+    return '<header class="lt"><div class="eyebrow">Instellingen</div><h1>Meer</h1></header><div class="menu">' +
+      '<button data-act="open" data-screen="reminders"><span class="ico">' + ic("notifications", "fill") + '</span><span class="t"><div class="n">Herinneringen</div><div class="s">' + on + " van " + seeds.length + " zaden staan aan</div></span>" + ic("chevron_right", "chev") + "</button>" +
+      '<button data-act="open" data-screen="backup"><span class="ico">' + ic("folder_zip", "fill") + '</span><span class="t"><div class="n">Backup</div><div class="s">' + (state.lastExport ? "Laatste export: vandaag" : "Nog nooit geëxporteerd") + "</div></span>" + ic("chevron_right", "chev") + "</button></div>" +
+      '<div class="about">' + ic("lock") + "<span>Plant Keeper 0.1. Alles staat alleen op dit toestel. Geen account, geen cloud.</span></div>";
+  };
+
+  S.reminders = function () {
+    var rows = seeds.filter(function (s) { return s.binnen || s.buiten; }).sort(byName).map(function (s) {
+      var rem = nextReminder(s);
+      return '<div class="item" style="cursor:default">' + thumb(s, "sm") + '<div class="t"><div class="n">' + esc(s.naam) + '</div><div class="s">' + (s.herinnering ? "Melding op " + rem : "Uit") + "</div></div>" + sw(s.herinnering, "toggleRem", s.id, "Herinnering voor " + s.naam) + "</div>";
+    }).join("");
+    return '<div class="appbar"><button class="iconbtn" data-act="back" aria-label="Terug">' + ic("arrow_back") + "</button><h2>Herinneringen</h2></div>" +
+      '<div class="stack"><div class="note calm">' + ic("info") + "<span>Je krijgt een melding op de eerste dag van de maand waarin een zaaiperiode begint. Begint binnen en buiten in dezelfde maand, dan krijg je één melding.</span></div>" +
+      (state.notifAllowed ? "" : '<div class="note">' + ic("notifications_paused") + '<div>Meldingen staan uit voor Plant Keeper. Zonder toestemming komen er geen herinneringen.<br><button class="btn primary sm" data-act="allowNotif">Meldingen toestaan</button></div></div>') +
+      '</div><div class="sh"><div class="ico">' + ic("grain") + '</div><h2>Per zaad</h2><span class="cnt">' + seeds.filter(function (s) { return s.herinnering; }).length + " aan</span></div><div class=\"list\">" + rows + "</div>";
+  };
+
+  S.backup = function () {
+    var photos = seeds.concat(plants).filter(function (o) { return o.photo; }).length;
+    var file = state.zip ? '<div class="file">' + ic("folder_zip", "fill") + '<div class="t">' + state.zip.name + "<small>" + state.zip.info + '</small></div><button class="iconbtn" data-act="clearZip" aria-label="Bestand verwijderen">' + ic("close") + "</button></div>" :
+      '<button class="btn tonal block" style="margin-bottom:12px" data-act="pickZip">' + ic("upload_file") + "Kies ZIP-bestand</button>";
+    return '<div class="appbar"><button class="iconbtn" data-act="back" aria-label="Terug">' + ic("arrow_back") + "</button><h2>Backup</h2></div>" +
+      '<div class="stack"><div class="card"><div class="big-ico">' + ic("download", "fill") + "</div><h3>Exporteren</h3><p>Eén ZIP met al je zaden, planten en foto's. Bewaar hem op een veilige plek, het bestand is niet versleuteld.</p>" +
+      '<div class="stats"><span>' + seeds.length + " zaden</span><span>" + plants.length + " planten</span><span>" + photos + " foto's</span></div>" +
+      '<button class="btn primary block" data-act="export">' + ic("ios_share") + "Exporteer ZIP</button>" +
+      (state.lastExport ? '<div class="desc" style="margin-bottom:0">Laatste export: vandaag om ' + pad(state.lastExport.getHours()) + ":" + pad(state.lastExport.getMinutes()) + "</div>" : "") + "</div>" +
+      '<div class="card"><div class="big-ico">' + ic("upload", "fill") + "</div><h3>Importeren</h3><p style=\"margin-bottom:14px\">Kies een eerder geëxporteerde ZIP en bepaal wat er met je huidige data gebeurt.</p>" + file +
+      '<div class="seg" role="group" aria-label="Importmodus"><button class="' + (state.mode === "merge" ? "on" : "") + '" data-act="mode" data-m="merge">' + ic("merge") + 'Samenvoegen</button><button class="' + (state.mode === "replace" ? "on" : "") + '" data-act="mode" data-m="replace">' + ic("restart_alt") + "Vervangen</button></div>" +
+      '<div class="desc">' + (state.mode === "merge" ? "Items die al bestaan worden bijgewerkt, nieuwe items worden toegevoegd. Er gaat niets verloren." : "Al je huidige zaden, planten en foto's worden gewist en vervangen door de inhoud van de ZIP.") + "</div>" +
+      '<button class="btn primary block" data-act="doImport"' + (state.zip ? "" : " disabled") + ">Importeer</button></div>" +
+      '<div class="note">' + ic("warning") + "<span>Verwijder je de app zonder te exporteren, dan ben je al je gegevens kwijt. Er is geen cloud die ze bewaart.</span></div></div>";
+  };
+
+  /* rendering */
+  var ROOTS = ["home", "seeds", "plants", "more"];
+  var scrollEl = document.getElementById("scroll"), navEl = document.getElementById("nav"), fabEl = document.getElementById("fab"), dlgEl = document.getElementById("dlg"), toastEl = document.getElementById("toast"), mainEl = document.getElementById("main");
+  function render(keep) {
+    var top = state.stack[state.stack.length - 1];
+    var root = state.stack.length === 1;
+    var y = keep ? scrollEl.scrollTop : 0;
+    scrollEl.innerHTML = '<div class="screen' + (keep ? " still" : "") + (root ? "" : " sub slide") + '">' + S[top.name](top) + "</div>";
+    if (keep) scrollEl.querySelector(".screen").classList.remove("slide");
+    scrollEl.scrollTop = y;
+    navEl.hidden = !root;
+    mainEl.classList.toggle("sub", !root);
+    var tab = state.stack[0].name;
+    Array.prototype.forEach.call(navEl.querySelectorAll(".navbtn"), function (b) {
+      var on = b.dataset.tab === tab; b.classList.toggle("on", on);
+      if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    fabEl.innerHTML = top.name === "seeds" ? '<button class="fab" data-act="addSeed">' + ic("add") + "Zaad</button>" : top.name === "plants" ? '<button class="fab" data-act="addPlant">' + ic("add") + "Plant</button>" : "";
+    renderDialog();
+  }
+  function go(name, params) { var e = Object.assign({ name: name }, params || {}); state.stack.push(e); render(); }
+  function back() { if (state.stack.length > 1) state.stack.pop(); render(); }
+  var toastTimer;
+  function toast(msg, icon) {
+    toastEl.innerHTML = ic(icon || "check_circle", "fill") + "<span>" + esc(msg) + "</span>";
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2800);
+  }
+  function dialog(o) { state.dlg = o; renderDialog(); }
+  function renderDialog() {
+    var o = state.dlg;
+    dlgEl.innerHTML = o ? '<div class="scrim"><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t">' + ic(o.icon || "delete") + '<h3 id="dlg-t">' + esc(o.title) + "</h3><p>" + esc(o.text) + '</p><div class="acts"><button data-act="dlgCancel">Annuleren</button><button class="danger" data-act="dlgOk">' + esc(o.ok) + "</button></div></div></div>" : "";
+    if (o) { var b = dlgEl.querySelector("[data-act=dlgCancel]"); if (b) b.focus(); }
+  }
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+  function showErr(msg) { var e = document.getElementById("f-err"); e.textContent = msg; e.hidden = false; scrollEl.scrollTop = 0; }
+  function range(a, b, label) {
+    var s = parseInt(val(a), 10), e = parseInt(val(b), 10);
+    if (!s && !e) return { r: null };
+    if (!s || !e) return { err: "Vul bij zaaitijd " + label + " zowel de begin- als de eindmaand in, of laat beide leeg." };
+    return { r: [s, e] };
+  }
+
+  /* actions */
+  var A = {
+    tab: function (d) { state.stack = [{ name: d.tab }]; render(); },
+    back: back,
+    seed: function (d) { go("seedDetail", { id: d.id }); },
+    plant: function (d) { go("plantDetail", { id: d.id }); },
+    open: function (d) { go(d.screen); },
+    addSeed: function () { state.draft = { naam: "", soort: "", qty: 1, unit: "zakje", houdbaar: CY + 2, locatie: "", notities: "", binnen: null, buiten: null }; go("seedForm"); },
+    editSeed: function (d) { state.draft = Object.assign({}, seedById(d.id)); go("seedForm"); },
+    harvestSeed: function (d) {
+      var x = plantById(d.id), ms = x.seedId && seedById(x.seedId);
+      state.draft = { naam: x.naam.replace(/ \(eigen zaad\)$/, "") + " (eigen zaad)", soort: ms ? ms.soort : "", qty: 1, unit: "zakje", houdbaar: CY + 3, locatie: "", notities: "", binnen: ms ? ms.binnen : null, buiten: ms ? ms.buiten : null, moederId: x.id, oogstDatum: x.oogstDatum || TODAY_ISO, hue: x.hue, icon: x.icon };
+      go("seedForm");
+    },
+    saveSeed: function () {
+      var d = state.draft, naam = val("f-naam");
+      if (!naam) return showErr("Geef het zaad een naam.");
+      var b = range("f-bs", "f-be", "binnen"), o = range("f-os", "f-oe", "buiten");
+      if (b.err || o.err) return showErr(b.err || o.err);
+      var qty = parseFloat(val("f-qty"));
+      var obj = Object.assign(d, { naam: naam, soort: val("f-soort"), qty: isNaN(qty) ? 0 : qty, unit: val("f-unit"), houdbaar: parseInt(val("f-houdbaar"), 10) || null, locatie: val("f-loc"), notities: val("f-not"), binnen: b.r, buiten: o.r });
+      if (d.moederId) obj.oogstDatum = val("f-oogst");
+      if (d.id) {
+        var i = seeds.findIndex(function (s) { return s.id === d.id; });
+        seeds[i] = obj;
+        state.stack.pop();
+      } else {
+        obj.id = newId("s"); obj.herinnering = true;
+        if (obj.hue == null) obj.hue = hueFor(naam);
+        if (!obj.icon) obj.icon = "eco";
+        seeds.push(obj);
+        state.stack.pop(); state.stack.push({ name: "seedDetail", id: obj.id });
+      }
+      state.draft = null; render(); toast("Zaad opgeslagen");
+    },
+    sow: function (d) {
+      var s = seedById(d.id);
+      state.draft = { seedId: s.id, naam: s.naam, zaaidatum: TODAY_ISO, locatie: "", status: "gezaaid", oogstDatum: "", oogstTekst: "", notities: "" };
+      go("plantForm");
+    },
+    addPlant: function () { state.draft = { seedId: "", naam: "", zaaidatum: TODAY_ISO, locatie: "", status: "gezaaid", oogstDatum: "", oogstTekst: "", notities: "" }; go("plantForm"); },
+    editPlant: function (d) { state.draft = Object.assign({}, plantById(d.id)); go("plantForm"); },
+    savePlant: function () {
+      var d = state.draft, naam = val("f-naam"), datum = val("f-datum");
+      if (!naam) return showErr("Geef de plant een naam, of kies een zaad.");
+      if (!datum) return showErr("Vul de zaaidatum in.");
+      var seedId = val("f-seed") || null, s = seedId && seedById(seedId);
+      var obj = Object.assign(d, { seedId: seedId, naam: naam, zaaidatum: datum, status: val("f-status"), locatie: val("f-loc"), oogstDatum: val("f-odatum"), oogstTekst: val("f-otekst"), notities: val("f-not") });
+      if (!d.id || s) { obj.hue = s ? s.hue : (obj.hue != null ? obj.hue : hueFor(naam)); obj.icon = s ? s.icon : (obj.icon || "potted_plant"); }
+      if (d.id) {
+        plants[plants.findIndex(function (p) { return p.id === d.id; })] = obj;
+        state.stack.pop();
+      } else {
+        obj.id = newId("p"); plants.push(obj);
+        state.stack.pop(); state.stack.push({ name: "plantDetail", id: obj.id });
+      }
+      state.draft = null; render(); toast("Plant opgeslagen");
+    },
+    toggleRem: function (d) {
+      var s = seedById(d.id); s.herinnering = !s.herinnering; render(true);
+      toast(s.herinnering ? "Herinnering aan voor " + s.naam : "Herinnering uit", s.herinnering ? "notifications_active" : "notifications_off");
+    },
+    setStatus: function (d) { var x = plantById(d.id); x.status = d.s; render(true); toast("Status: " + d.s); },
+    filter: function (d) { state.filter = d.s; render(true); },
+    delSeed: function (d) {
+      var s = seedById(d.id), n = plants.filter(function (p) { return p.seedId === s.id; }).length;
+      dialog({ title: "Zaad verwijderen?", ok: "Verwijderen", text: s.naam + " wordt verwijderd." + (n ? " De " + n + (n === 1 ? " gekoppelde plant blijft" : " gekoppelde planten blijven") + " bestaan, alleen zonder koppeling." : ""), onOk: function () {
+        seeds.splice(seeds.indexOf(s), 1);
+        plants.forEach(function (p) { if (p.seedId === s.id) p.seedId = null; });
+        state.stack.pop(); render(); toast("Zaad verwijderd", "delete");
+      } });
+    },
+    delPlant: function (d) {
+      var x = plantById(d.id);
+      dialog({ title: "Plant verwijderen?", ok: "Verwijderen", text: x.naam + " (gezaaid " + fmtDate(x.zaaidatum) + ") wordt verwijderd. Wil je hem in de geschiedenis houden, kies dan de status overleden.", onOk: function () {
+        plants.splice(plants.indexOf(x), 1); state.stack.pop(); render(); toast("Plant verwijderd", "delete");
+      } });
+    },
+    dlgCancel: function () { state.dlg = null; renderDialog(); },
+    dlgOk: function () { var o = state.dlg; state.dlg = null; renderDialog(); if (o && o.onOk) o.onOk(); },
+    allowNotif: function () { state.notifAllowed = true; render(true); toast("Meldingen staan aan", "notifications_active"); },
+    "export": function () { state.lastExport = new Date(); render(true); toast("plantkeeper-backup-" + TODAY_ISO + ".zip opgeslagen (demo)", "download_done"); },
+    pickZip: function () { state.zip = { name: "plantkeeper-backup-2026-10-02.zip", info: "11 zaden, 7 planten, 4 foto's. Schemaversie 1." }; render(true); },
+    clearZip: function () { state.zip = null; render(true); },
+    mode: function (d) { state.mode = d.m; render(true); },
+    doImport: function () {
+      if (state.mode === "replace") {
+        dialog({ title: "Alles vervangen?", icon: "restart_alt", ok: "Wissen en importeren", text: "Je huidige " + seeds.length + " zaden en " + plants.length + " planten worden gewist. Dit kun je niet ongedaan maken. Exporteer eerst als je twijfelt.", onOk: function () { state.zip = null; render(true); toast("Vervangen (demo). Er is niets gewist.", "restart_alt"); } });
+      } else { state.zip = null; render(true); toast("Samengevoegd (demo): 2 nieuw, 9 bijgewerkt", "merge"); }
+    },
+    jump: function (d) {
+      var t = d.to;
+      if (ROOTS.indexOf(t) >= 0) state.stack = [{ name: t }];
+      else if (t === "seedDetail") state.stack = [{ name: "seeds" }, { name: "seedDetail", id: "s8" }];
+      else if (t === "seedForm") { state.stack = [{ name: "seeds" }]; A.addSeed(); return; }
+      else if (t === "plantDetail") state.stack = [{ name: "plants" }, { name: "plantDetail", id: "p1" }];
+      else if (t === "plantForm") { state.stack = [{ name: "plants" }]; A.addPlant(); return; }
+      else state.stack = [{ name: "more" }, { name: t }];
+      state.dlg = null; render();
+    },
+    theme: function (d) {
+      document.documentElement.setAttribute("data-theme", d.t);
+      syncTheme();
+    }
+  };
+  function syncTheme() {
+    var t = document.documentElement.getAttribute("data-theme");
+    if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.getElementById("th-light").classList.toggle("on", t === "light");
+    document.getElementById("th-dark").classList.toggle("on", t === "dark");
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-act]");
+    if (!el || el.disabled) return;
+    var fn = A[el.dataset.act];
+    if (fn) { e.preventDefault(); fn(el.dataset, el); }
+  });
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "q") { state.q = e.target.value; document.getElementById("seedlist").innerHTML = seedRows(); }
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.id === "f-photo" && t.files && t.files[0] && state.draft) {
+      var r = new FileReader();
+      r.onload = function () {
+        state.draft.photo = r.result;
+        var pick = document.getElementById("photo-pick");
+        pick.classList.add("has");
+        pick.style.backgroundImage = "url('" + r.result + "')";
+        pick.querySelector("span").outerHTML = '<span class="lbl">Andere foto</span>';
+      };
+      r.readAsDataURL(t.files[0]);
+    }
+    if (t.id === "f-seed" && state.draft) {
+      var s = seedById(t.value), prev = seedById(state.draft.seedId), naam = document.getElementById("f-naam");
+      if (s && (!naam.value.trim() || (prev && naam.value === prev.naam))) naam.value = s.naam;
+      state.draft.seedId = t.value;
+    }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && state.dlg) A.dlgCancel(); });
+  if (window.matchMedia) { try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme); } catch (err) { /* older browsers */ } }
+
+  document.getElementById("clock").textContent = pad(today.getHours()) + ":" + pad(today.getMinutes());
+  syncTheme();
+  render();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('24px "Material Symbols Rounded"', "eco").then(function (f) { if (f.length) document.documentElement.classList.add("ms-ok"); }).catch(function () {});
+  }
+})();
+</script>
