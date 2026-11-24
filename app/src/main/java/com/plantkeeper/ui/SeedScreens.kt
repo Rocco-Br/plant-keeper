@@ -99,7 +99,7 @@ fun SeedListScreen(nav: NavController) {
 
     PkScaffold(
         title = "Zaden",
-        eyebrow = "${seeds.size} soorten in voorraad",
+        eyebrow = "${count(seeds.size, "soort", "soorten")} in voorraad",
         fab = {
             ExtendedFloatingActionButton(onClick = { nav.navigate(Routes.seedForm()) }, icon = { Icon(Icons.Outlined.Add, null) }, text = { Text("Zaad") })
         },

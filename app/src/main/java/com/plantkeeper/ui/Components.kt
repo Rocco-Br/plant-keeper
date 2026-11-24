@@ -97,6 +97,8 @@ fun qtyText(quantity: Double?, unit: QuantityUnit): String = when {
     else -> "${fmtNumber(quantity)} ${unit.plural}"
 }
 
+fun count(n: Int, one: String, many: String) = "$n ${if (n == 1) one else many}"
+
 fun fmtDate(iso: String?): String {
     if (iso.isNullOrBlank()) return ""
     val d = LocalDate.parse(iso)

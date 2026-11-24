@@ -78,7 +78,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
             }
             Spacer(Modifier.width(10.dp))
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text("${seeds.size} zaden", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(count(seeds.size, "zaad", "zaden"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
     if (seeds.isEmpty()) {
