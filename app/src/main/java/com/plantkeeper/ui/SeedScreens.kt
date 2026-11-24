@@ -82,6 +82,7 @@ import com.plantkeeper.data.indoor
 import com.plantkeeper.data.isExpired
 import com.plantkeeper.data.nextReminderDate
 import com.plantkeeper.data.outdoor
+import com.plantkeeper.data.seedFromMother
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -244,9 +245,26 @@ fun SeedDetailScreen(nav: NavController, id: String) {
     }
 }
 
-/** Placeholder voor zaadgewinning (#3): toont de moederplant. */
+/** Zaadgewinning: link naar de moederplant waarvan dit zaad gewonnen is. */
 @Composable
 private fun MotherLink(nav: NavController, seed: Seed) {
+    val motherId = seed.motherPlantId ?: return
+    val dao = app().db.dao()
+    val mother by remember(motherId) { dao.plant(motherId) }.collectAsState(initial = null)
+    val m = mother ?: return
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { nav.navigate(Routes.plant(m.id)) }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Recycling, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+        Spacer(Modifier.width(10.dp))
+        Text(
+            "Gewonnen van ${m.name}" + (seed.seedHarvestDate?.let { " op ${fmtDate(it)}" } ?: ""),
+            color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.weight(1f),
+        )
+        Chevron()
+    }
 }
 
 @Composable
@@ -339,6 +357,8 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
     val scope = rememberCoroutineScope()
 
     var loaded by rememberSaveable { mutableStateOf(id == null && motherId == null) }
+    var mother by rememberSaveable { mutableStateOf(motherId) }
+    var harvestDate by rememberSaveable { mutableStateOf<String?>(null) }
     var name by rememberSaveable { mutableStateOf("") }
     var kind by rememberSaveable { mutableStateOf("") }
     var quantity by rememberSaveable { mutableStateOf("1") }
@@ -357,11 +377,14 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
 
     LaunchedEffect(id) {
         if (loaded) return@LaunchedEffect
-        id?.let { dao.getSeed(it) }?.let { s ->
+        val source = if (id != null) dao.getSeed(id) else motherId?.let { dao.getPlant(it) }?.let { p ->
+            seedFromMother(p, p.seedId?.let { dao.getSeed(it) }, LocalDate.now())
+        }
+        source?.let { s ->
             name = s.name; kind = s.kind; quantity = s.quantity?.let(::fmtNumber).orEmpty(); unit = s.unit
             expiry = s.expiryYear?.toString().orEmpty(); storage = s.storage; notes = s.notes
             inStart = s.indoorStart; inEnd = s.indoorEnd; outStart = s.outdoorStart; outEnd = s.outdoorEnd
-            photo = s.photo
+            photo = s.photo; mother = s.motherPlantId; harvestDate = s.seedHarvestDate
         }
         loaded = true
     }
@@ -379,7 +402,7 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
                         name = name.trim(), kind = kind.trim(), quantity = parseNumber(quantity), unit = unit,
                         expiryYear = expiry.trim().toIntOrNull(), storage = storage.trim(), notes = notes.trim(),
                         indoorStart = inStart, indoorEnd = inEnd, outdoorStart = outStart, outdoorEnd = outEnd,
-                        photo = newPhoto ?: photo,
+                        photo = newPhoto ?: photo, motherPlantId = mother, seedHarvestDate = harvestDate,
                     ),
                 )
                 if (newPhoto != null) app.photos.delete(photo)
@@ -392,7 +415,7 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
     }
 
     PkScaffold(
-        title = if (id != null) "Zaad bewerken" else "Nieuw zaad",
+        title = if (id != null) "Zaad bewerken" else if (motherId != null) "Zaad winnen" else "Nieuw zaad",
         onBack = { nav.popBackStack() },
         backIcon = Icons.Outlined.Close,
         actions = { Button(onClick = ::save, enabled = loaded && !saving, modifier = Modifier.padding(end = 8.dp)) { Text("Opslaan") } },
@@ -404,6 +427,11 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
         ) {
             FormError(error)
             PhotoPickerField(name, photo, picked) { picked = it }
+            if (mother != null) {
+                val motherName by remember(mother) { dao.plant(mother!!) }.collectAsState(initial = null)
+                motherName?.let { Badge("Gekoppeld aan moederplant ${it.name}", Icons.Outlined.Recycling, warn = false) }
+                DateField("Zaad geoogst op", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
+            }
             Field("Naam", name, { name = it }, placeholder = "Bijvoorbeeld Tomaat ‘Moneymaker’")
             Field("Soort", kind, { kind = it }, placeholder = "Tomaat, kruid, bol...")
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

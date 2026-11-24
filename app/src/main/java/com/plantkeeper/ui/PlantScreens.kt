@@ -30,11 +30,13 @@ import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.LinkOff
 import androidx.compose.material.icons.outlined.LocalFlorist
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -194,9 +196,14 @@ fun PlantDetailScreen(nav: NavController, id: String) {
     }
 }
 
-/** Zaadgewinning (#3). */
+/** Zaadgewinning: opent het zaadformulier, gekoppeld aan deze plant als moederplant. */
 @Composable
 private fun HarvestSeedButton(nav: NavController, plant: Plant) {
+    FilledTonalButton(onClick = { nav.navigate(Routes.seedForm(mother = plant.id)) }, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Outlined.Recycling, null)
+        Spacer(Modifier.width(8.dp))
+        Text("Maak zaad van deze plant")
+    }
 }
 
 // ---------- Formulier ----------

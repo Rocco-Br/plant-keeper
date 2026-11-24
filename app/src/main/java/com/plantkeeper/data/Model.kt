@@ -71,3 +71,19 @@ data class Plant(
     val harvestDate: String? = null,
     val harvestText: String = "",
 )
+
+/**
+ * Zaadgewinning: een nieuw zaad-record gekoppeld aan de moederplant. Soort en zaaitijden komen van het zaad
+ * van de moederplant (als dat er is), de oogstdatum van de plant of anders vandaag.
+ */
+fun seedFromMother(plant: Plant, motherSeed: Seed?, today: java.time.LocalDate): Seed = Seed(
+    name = plant.name.removeSuffix(" (eigen zaad)") + " (eigen zaad)",
+    kind = motherSeed?.kind.orEmpty(),
+    quantity = 1.0,
+    unit = QuantityUnit.ZAKJE,
+    expiryYear = today.year + 3,
+    indoorStart = motherSeed?.indoorStart, indoorEnd = motherSeed?.indoorEnd,
+    outdoorStart = motherSeed?.outdoorStart, outdoorEnd = motherSeed?.outdoorEnd,
+    motherPlantId = plant.id,
+    seedHarvestDate = plant.harvestDate ?: today.toString(),
+)
