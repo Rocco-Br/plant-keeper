@@ -116,7 +116,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -264,7 +263,6 @@ fun DetailScaffold(
             }
             Column(
                 Modifier
-                    .appear()
                     .offset(y = (-32).dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 34.dp, topEnd = 34.dp))
@@ -415,34 +413,43 @@ fun Tile(
     )
 }
 
-/** Feitje in een gekleurde tegel: icoon, label en waarde. Zet ze in een Row met `height(IntrinsicSize.Min)` voor gelijke hoogte. */
+/** Kaart met feiten onder elkaar (voorraad, houdbaar, locatie...). Vul met [FactRow]. */
 @Composable
-fun Fact(
+fun FactsCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(pk.card).padding(vertical = Space.s), content = content)
+}
+
+/**
+ * Eén feit: gekleurd icoon, label links en de waarde rechts. Lange waarden lopen netjes over twee regels
+ * in plaats van midden in een woord af te breken. Met [onClick] krijgt de rij een pijltje.
+ */
+@Composable
+fun FactRow(
     icon: ImageVector,
     label: String,
     value: String,
-    modifier: Modifier = Modifier,
-    container: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    content: Color = MaterialTheme.colorScheme.onSurface,
+    tint: Color,
+    container: Color,
     onClick: (() -> Unit)? = null,
 ) {
-    val interaction = remember { MutableInteractionSource() }
-    Column(
-        modifier
-            .fillMaxHeight()
-            .then(if (onClick != null) Modifier.pressScale(interaction) else Modifier)
-            .clip(MaterialTheme.shapes.medium)
-            .background(container)
-            .then(if (onClick != null) Modifier.clickable(interaction, LocalIndication.current, role = Role.Button, onClick = onClick) else Modifier)
-            .padding(Space.m + Space.xs),
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(horizontal = Space.l, vertical = Space.xs),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, null, tint = content, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.height(Space.s))
-        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = content.copy(alpha = 0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        IconBlob(icon, container, tint, 36.dp)
+        Spacer(Modifier.width(Space.m))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        Spacer(Modifier.width(Space.m))
         Text(
-            value, style = MaterialTheme.typography.titleSmall, color = content, maxLines = 2, overflow = TextOverflow.Ellipsis,
-            textDecoration = if (onClick != null) TextDecoration.Underline else null,
+            value, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.End, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
+        if (onClick != null) Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.primary)
     }
 }
 

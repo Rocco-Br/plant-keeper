@@ -7,6 +7,22 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.derivedStateOf
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.delay
+import kotlin.math.sin
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +64,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.plantkeeper.data.Plant
@@ -126,26 +143,16 @@ fun PlantDetailScreen(nav: NavController, id: String) {
             SectionCard("Hoe staat hij erbij?", p.status.icon, tint = statusColors(p.status).second) {
                 StatusPicker(p.status) { s -> scope.launch { dao.setStatus(p.id, s) } }
             }
-            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                Fact(Icons.Outlined.Event, "Gezaaid", fmtDate(p.sowDate), Modifier.weight(1f), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
-                Fact(Icons.Outlined.LocationOn, "Locatie", p.location.ifBlank { "Onbekend" }, Modifier.weight(1f), pk.indoorContainer, pk.onIndoorContainer)
+            FactsCard {
+                val cs = MaterialTheme.colorScheme
+                FactRow(Icons.Outlined.Event, "Gezaaid", fmtDate(p.sowDate), cs.onPrimaryContainer, cs.primaryContainer)
+                FactRow(Icons.Outlined.LocationOn, "Locatie", p.location.ifBlank { "Onbekend" }, pk.onIndoorContainer, pk.indoorContainer)
                 val s = seed
                 if (s != null) {
-                    Fact(Icons.Outlined.Grain, "Zaad", "Bekijk zaad", Modifier.weight(1f), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer) {
-                        nav.navigate(Routes.seed(s.id))
-                    }
+                    FactRow(Icons.Outlined.Grain, "Zaad", s.name, cs.onSecondaryContainer, cs.secondaryContainer) { nav.navigate(Routes.seed(s.id)) }
                 } else {
-                    Fact(Icons.Outlined.LinkOff, "Zaad", "Geen", Modifier.weight(1f))
+                    FactRow(Icons.Outlined.LinkOff, "Zaad", "Losse plant", cs.onSurfaceVariant, cs.surfaceContainerHigh)
                 }
-            }
-            SectionCard("Oogst", Icons.Outlined.Agriculture, tint = statusColors(PlantStatus.GEOOGST).second) {
-                if (p.harvestDate != null || p.harvestText.isNotBlank()) {
-                    if (p.harvestDate != null) Text(fmtDate(p.harvestDate), style = MaterialTheme.typography.titleMedium)
-                    if (p.harvestText.isNotBlank()) Text(p.harvestText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Hint("Nog niet geoogst. Vul een oogstdatum in via bewerken.")
-                }
-                HarvestSeedButton(nav, p)
             }
             if (p.notes.isNotBlank()) {
                 SectionCard("Notities", Icons.AutoMirrored.Outlined.StickyNote2) { Text(p.notes, style = MaterialTheme.typography.bodyMedium) }
@@ -172,12 +179,6 @@ fun PlantDetailScreen(nav: NavController, id: String) {
     }
 }
 
-/** Zaadgewinning: opent het zaadformulier, gekoppeld aan deze plant als moederplant. */
-@Composable
-private fun HarvestSeedButton(nav: NavController, plant: Plant) {
-    PkButton("Maak zaad van deze plant", { nav.navigate(Routes.seedForm(mother = plant.id)) }, icon = Icons.Outlined.Recycling, kind = ButtonKind.Tonal)
-}
-
 // ---------- Formulier ----------
 
 @Composable
@@ -186,6 +187,7 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
     val dao = app.db.dao()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val focus = LocalFocusManager.current
     val seeds by dao.seeds().collectAsState(initial = emptyList())
 
     var loaded by rememberSaveable { mutableStateOf(false) }
@@ -201,6 +203,7 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
     var picked by rememberSaveable { mutableStateOf<String?>(null) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
+    var celebrate by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(id) {
         if (loaded) return@LaunchedEffect
@@ -216,6 +219,7 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
     }
 
     fun save() {
+        focus.clearFocus() // toetsenbord dicht, zodat het niet over een melding of animatie blijft hangen
         error = when {
             name.isBlank() -> "Vul een naam in."
             sowDate == null -> "Kies een zaaidatum."
@@ -234,7 +238,8 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
                     ),
                 )
                 if (newPhoto != null) app.photos.delete(photo)
-                nav.popBackStack()
+                // Een nieuwe zaai krijgt een feestje; bewerken gaat gewoon terug.
+                if (id == null) celebrate = name.trim() else nav.popBackStack()
             } catch (e: Exception) {
                 error = "Opslaan mislukt: ${e.message}"
                 saving = false
@@ -242,6 +247,7 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
         }
     }
 
+    Box(Modifier.fillMaxSize()) {
     PkScaffold(
         title = if (id != null) "Plant bewerken" else "Nieuwe plant",
         onBack = { nav.popBackStack() },
@@ -276,14 +282,68 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
             SectionCard("Status", status.icon, tint = statusColors(status).second) {
                 StatusPicker(status) { status = it }
             }
-            SectionCard("Oogst", Icons.Outlined.Agriculture, tint = statusColors(PlantStatus.GEOOGST).second) {
-                DateField("Oogstdatum", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
-                Field("Hoeveelheid en notitie", harvestText, { harvestText = it }, placeholder = "Bijvoorbeeld 2 kg, mooie vruchten", imeAction = ImeAction.Done)
-            }
             SectionCard("Notities", Icons.AutoMirrored.Outlined.StickyNote2) {
                 Field("Notities", notes, { notes = it }, singleLine = false)
             }
             Spacer(Modifier.height(Space.xl))
         }
     }
+    celebrate?.let { SownCelebration(it) { nav.popBackStack() } }
+    }
 }
+
+/**
+ * Feestje na een nieuwe zaai: het potje speelt zijn opstartreeks, er dwarrelen blaadjes en de naam komt erbij.
+ * Gaat na een paar tellen vanzelf verder; tikken of terug slaat het over.
+ */
+@Composable
+private fun SownCelebration(name: String, onDone: () -> Unit) {
+    var finished by remember { mutableStateOf(false) }
+    val finish = { if (!finished) { finished = true; onDone() } }
+    var showText by remember { mutableStateOf(false) }
+    val fall = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        launch { fall.animateTo(1f, tween(CelebrationMs, easing = LinearEasing)) }
+        delay(900); showText = true
+        delay(CelebrationMs - 900L); finish()
+    }
+    BackHandler { finish() }
+    val c = pk
+    val confetti = listOf(c.sun, c.onHero, pk.outdoorContainer, pk.indoor)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(c.hero))
+            .clickable(interactionSource = null, indication = null, onClickLabel = "Overslaan") { finish() },
+        contentAlignment = Alignment.Center,
+    ) {
+        // Blaadjes die van boven naar beneden dwarrelen, elk met een eigen tempo, plek en draai.
+        Canvas(Modifier.fillMaxSize()) {
+            val leaf = Size(9.dp.toPx(), 5.dp.toPx())
+            for (i in 0 until 18) {
+                val speed = 0.7f + (i * 37 % 10) / 20f
+                val t = (fall.value * speed * 1.3f - (i % 6) * 0.08f).coerceIn(0f, 1f)
+                if (t <= 0f || t >= 1f) continue
+                val x = size.width * ((i * 53 % 100) / 100f) + sin(t * 9f + i) * 14.dp.toPx()
+                val y = -20f + t * (size.height + 40f)
+                rotate(t * 540f * (if (i % 2 == 0) 1 else -1) + i * 20f, pivot = Offset(x, y)) {
+                    drawOval(confetti[i % confetti.size].copy(alpha = 0.85f), Offset(x - leaf.width / 2, y - leaf.height / 2), leaf)
+                }
+            }
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = Space.xl)) {
+            Mascot(Modifier.size(220.dp), intro = true, onDark = true)
+            AnimatedVisibility(showText, enter = Motion.enterUp) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Gezaaid!", style = MaterialTheme.typography.displayMedium, color = c.onHero)
+                    Text(name, style = MaterialTheme.typography.titleLarge, color = c.onHero.copy(alpha = 0.85f), textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(Space.xl))
+                    Text("Tik om verder te gaan", style = MaterialTheme.typography.bodySmall, color = c.onHero.copy(alpha = 0.6f))
+                }
+            }
+        }
+    }
+}
+
+private const val CelebrationMs = 3200
+

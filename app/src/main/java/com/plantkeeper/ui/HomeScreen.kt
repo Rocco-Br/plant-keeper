@@ -180,7 +180,7 @@ private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, 
 
 /**
  * Zaaiwiel: een ring van 12 maanden, januari bovenaan, met de klok mee.
- * Hoe dikker en lichter een boogje, hoe meer zaden je die maand kunt zaaien. De huidige maand is zonnegeel.
+ * Hoe voller de kleur van een segment, hoe meer zaden je die maand kunt zaaien. De huidige maand is zonnegeel.
  */
 @Composable
 private fun SowingWheel(perMonth: List<Int>, current: Int, modifier: Modifier) {
@@ -196,29 +196,26 @@ private fun SowingWheel(perMonth: List<Int>, current: Int, modifier: Modifier) {
     Box(modifier.semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val labelSpace = 14.dp.toPx()
-            val radius = size.minDimension / 2 - labelSpace - 8.dp.toPx()
+            val radius = size.minDimension / 2 - labelSpace - 6.dp.toPx()
             val center = Offset(size.width / 2, size.height / 2)
+            val stroke = 9.dp.toPx()
+            val topLeft = Offset(center.x - radius, center.y - radius)
+            val arcSize = Size(radius * 2, radius * 2)
             for (i in 0 until 12) {
-                // Elk boogje komt na het vorige: bij reveal 0..1 lopen de 12 maanden achter elkaar in.
+                // Elk segment komt na het vorige: bij reveal 0..1 lopen de 12 maanden achter elkaar in.
                 val local = (reveal * 13f - i).coerceIn(0f, 1f)
                 if (local <= 0f) continue
                 val frac = perMonth[i].toFloat() / max
                 val isNow = i + 1 == current
-                val width = (5 + 9 * frac).dp.toPx() + if (isNow) 3.dp.toPx() else 0f
-                val color = when {
+                // Rustige ring: overal even dik, kleine openingen, voller van kleur naarmate er meer te zaaien valt.
+                val start = -90f + i * 30f + 2.5f
+                drawArc(c.onHero.copy(alpha = 0.12f), start, 25f * local, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Butt))
+                val fill = when {
                     isNow -> c.sun
-                    perMonth[i] == 0 -> c.onHero.copy(alpha = 0.16f)
-                    else -> c.onHero.copy(alpha = 0.45f + 0.5f * frac)
+                    perMonth[i] == 0 -> null
+                    else -> c.onHero.copy(alpha = 0.3f + 0.45f * frac)
                 }
-                drawArc(
-                    color = color,
-                    startAngle = -90f + i * 30f + 6f,
-                    sweepAngle = 18f * local,
-                    useCenter = false,
-                    topLeft = Offset(center.x - radius, center.y - radius),
-                    size = Size(radius * 2, radius * 2),
-                    style = Stroke(width = width, cap = StrokeCap.Round),
-                )
+                if (fill != null) drawArc(fill, start, 25f * local, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Butt))
                 val angle = Math.toRadians((-90.0 + i * 30.0 + 15.0))
                 val labelRadius = radius + labelSpace + 2.dp.toPx()
                 val layout = measurer.measure(MONTH_LETTERS[i], (if (isNow) currentStyle else labelStyle).let { it.copy(color = it.color.copy(alpha = it.color.alpha * local)) })

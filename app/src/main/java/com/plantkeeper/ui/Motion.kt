@@ -11,7 +11,12 @@ import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -54,7 +59,18 @@ object Motion {
 
     /** Tekstblok dat van onderen invaagt (welkomstscherm, begroeting). */
     val enterUp: EnterTransition = fadeIn(tween(LONG)) + slideInVertically(gentle()) { it / 3 }
+    /** Inklappen en weer uitklappen (bijvoorbeeld als het toetsenbord opent). */
+    val expand: EnterTransition = fadeIn(tween(MEDIUM)) + expandVertically(gentle())
+    val collapse: ExitTransition = fadeOut(tween(SHORT)) + shrinkVertically(tween(MEDIUM))
     val enterSide: EnterTransition = fadeIn(tween(LONG)) + slideInHorizontally(gentle()) { -it / 5 }
+
+    // Navbalk: komt van onderen nadat het nieuwe scherm al aan het invagen is.
+    val barEnter: EnterTransition = slideInVertically(tween(LONG, delay = MEDIUM)) { it } + fadeIn(tween(MEDIUM, delay = MEDIUM))
+    val barExit: ExitTransition = slideOutVertically(tween(MEDIUM)) { it } + fadeOut(tween(SHORT))
+
+    // Eenmalige begroeting na het welkomstscherm: welkom zwelt zacht weg, het startscherm groeit in beeld.
+    val welcomeExit: ExitTransition = fadeOut(tween(LONG)) + scaleOut(tween(LONG), targetScale = 1.08f)
+    val welcomeToHome: EnterTransition = fadeIn(tween(LONG, delay = SHORT)) + scaleIn(gentle(), initialScale = 0.92f)
 
     // Schermovergangen: invagen en een klein stukje meeschuiven.
     val navEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =

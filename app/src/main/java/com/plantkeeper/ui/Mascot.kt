@@ -132,7 +132,8 @@ private fun DrawScope.drawPlant(grow: Float, sway: Float, stem: Color, leafL: Co
 private fun DrawScope.drawPot() {
     drawPath(POT_BODY, Color(0xFFE07B4C))
     drawRoundRect(Color(0xFFC9653A), Offset(38f, 60f), Size(32f, 8f), CornerRadius(3f))
-    drawLine(Color.White.copy(alpha = 0.35f), Offset(47f, 71f), Offset(48.3f, 80f), strokeWidth = 2f, cap = StrokeCap.Round)
+    // Glanslijn links op de pot, kort genoeg om boven de wang te stoppen.
+    drawLine(Color.White.copy(alpha = 0.35f), Offset(44.6f, 69.5f), Offset(45.3f, 74f), strokeWidth = 1.8f, cap = StrokeCap.Round)
     drawOval(Color(0xBFFFBEAA), Offset(44.4f, 77.5f), Size(5.2f, 3f))
     drawOval(Color(0xBFFFBEAA), Offset(58.4f, 77.5f), Size(5.2f, 3f))
 }

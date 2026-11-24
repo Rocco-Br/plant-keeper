@@ -21,7 +21,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -59,10 +61,12 @@ fun AppNav(showWelcome: Boolean = false) {
     val nav = rememberNavController()
     val current by nav.currentBackStackEntryAsState()
     val route = current?.destination?.route
+    val onTab = tabs.any { it.route == route }
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            if (tabs.any { it.route == route }) {
+            // Schuift in na de schermovergang, zodat hij niet verschijnt terwijl het vorige scherm nog wegvaagt.
+            AnimatedVisibility(onTab, enter = Motion.barEnter, exit = Motion.barExit) {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     tabs.forEach { tab ->
                         val selected = route == tab.route
@@ -83,16 +87,20 @@ fun AppNav(showWelcome: Boolean = false) {
         },
     ) { padding ->
         NavHost(
-            nav, startDestination = if (showWelcome) Routes.WELCOME else Routes.HOME, modifier = Modifier.padding(padding),
+            // Alleen tabschermen houden ruimte vrij voor de balk; subschermen lopen meteen tot onderaan.
+            nav, startDestination = if (showWelcome) Routes.WELCOME else Routes.HOME,
+            modifier = Modifier.padding(bottom = if (onTab) padding.calculateBottomPadding() else 0.dp),
             enterTransition = Motion.navEnter,
             exitTransition = Motion.navExit,
             popEnterTransition = Motion.navPopEnter,
             popExitTransition = Motion.navPopExit,
         ) {
-            composable(Routes.WELCOME) {
+            composable(Routes.WELCOME, exitTransition = { Motion.welcomeExit }) {
                 WelcomeScreen(onDone = { nav.navigate(Routes.HOME) { popUpTo(Routes.WELCOME) { inclusive = true } } })
             }
-            composable(Routes.HOME) { HomeScreen(nav) }
+            composable(Routes.HOME, enterTransition = { if (initialState.destination.route == Routes.WELCOME) Motion.welcomeToHome else Motion.navEnter(this) }) {
+                HomeScreen(nav)
+            }
             composable(Routes.SEEDS) { SeedListScreen(nav) }
             composable("seed/{id}") { SeedDetailScreen(nav, it.arg("id")!!) }
             composable("seedForm?id={id}&mother={mother}") { SeedFormScreen(nav, it.arg("id"), it.arg("mother")) }

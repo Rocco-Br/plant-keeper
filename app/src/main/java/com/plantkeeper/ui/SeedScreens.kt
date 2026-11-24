@@ -65,6 +65,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -148,19 +149,16 @@ fun SeedDetailScreen(nav: NavController, id: String) {
             val expired = s.isExpired(today.year)
             DetailTitle(s.kind.ifBlank { "Zaad" }, s.name)
             if (expired) ExpiredLabel("Verlopen sinds ${s.expiryYear}")
-            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                Fact(
-                    Icons.Outlined.Scale, "Voorraad", qtyText(s.quantity, s.unit), Modifier.weight(1f),
-                    MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer,
+            FactsCard {
+                val cs = MaterialTheme.colorScheme
+                FactRow(Icons.Outlined.Scale, "Voorraad", qtyText(s.quantity, s.unit), cs.onPrimaryContainer, cs.primaryContainer)
+                FactRow(
+                    Icons.Outlined.HourglassBottom, "Houdbaar", s.expiryYear?.let { "t/m $it" } ?: "Onbekend",
+                    if (expired) cs.onTertiaryContainer else cs.onSecondaryContainer, if (expired) cs.tertiaryContainer else cs.secondaryContainer,
                 )
-                Fact(
-                    Icons.Outlined.HourglassBottom, "Houdbaar", s.expiryYear?.let { "t/m $it" } ?: "Onbekend", Modifier.weight(1f),
-                    if (expired) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer,
-                    if (expired) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-                Fact(Icons.Outlined.Inventory2, "Bewaarplek", s.storage.ifBlank { "Onbekend" }, Modifier.weight(1f), pk.indoorContainer, pk.onIndoorContainer)
+                FactRow(Icons.Outlined.Inventory2, "Bewaarplek", s.storage.ifBlank { "Onbekend" }, pk.onIndoorContainer, pk.indoorContainer)
+                MotherRow(nav, s)
             }
-            MotherLink(nav, s)
             PkButton("Zaaien", { nav.navigate(Routes.plantForm(seed = s.id)) }, icon = Icons.Outlined.LocalFlorist)
             SectionCard("Zaaitijden", Icons.Outlined.CalendarMonth) {
                 SowingGrid(s.indoor, s.outdoor, today.monthValue)
@@ -205,21 +203,16 @@ fun SeedDetailScreen(nav: NavController, id: String) {
     }
 }
 
-/** Zaadgewinning: link naar de moederplant waarvan dit zaad gewonnen is. */
+/** Zaadgewinning: rij naar de moederplant waarvan dit zaad gewonnen is. */
 @Composable
-private fun MotherLink(nav: NavController, seed: Seed) {
+private fun MotherRow(nav: NavController, seed: Seed) {
     val motherId = seed.motherPlantId ?: return
     val dao = app().db.dao()
     val mother by remember(motherId) { dao.plant(motherId) }.collectAsState(initial = null)
     val m = mother ?: return
-    Tile(onClick = { nav.navigate(Routes.plant(m.id)) }, container = MaterialTheme.colorScheme.primaryContainer) {
-        Icon(Icons.Outlined.Recycling, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-        Text(
-            "Gewonnen van ${m.name}" + (seed.seedHarvestDate?.let { " op ${fmtDate(it)}" } ?: ""),
-            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.weight(1f),
-        )
-        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-    }
+    FactRow(
+        Icons.Outlined.Recycling, "Gewonnen van", m.name, MaterialTheme.colorScheme.onPrimaryContainer, MaterialTheme.colorScheme.primaryContainer,
+    ) { nav.navigate(Routes.plant(m.id)) }
 }
 
 @Composable
@@ -233,8 +226,9 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
         if (seed.reminder) Icons.Outlined.Notifications else Icons.Outlined.NotificationsOff,
         subtitle = when {
             next == null -> "Geen zaaiperiode ingesteld"
-            seed.reminder -> "Melding op ${fmtLongDate(next)}"
-            else -> "Uit. Zet aan voor een melding op ${fmtLongDate(next)}"
+            // Beide teksten passen op één regel, zodat de kaart niet verspringt bij omzetten.
+            seed.reminder -> "Melding op ${fmtDate(next.toString())}"
+            else -> "Staat uit"
         },
         trailing = {
             Switch(
@@ -334,6 +328,7 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
     val dao = app.db.dao()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val focus = LocalFocusManager.current
 
     var loaded by rememberSaveable { mutableStateOf(id == null && motherId == null) }
     var mother by rememberSaveable { mutableStateOf(motherId) }
@@ -369,6 +364,7 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
     }
 
     fun save() {
+        focus.clearFocus() // toetsenbord dicht, zodat het niet over een melding of animatie blijft hangen
         error = seedFormError(name, quantity, expiry, inStart to inEnd, outStart to outEnd)
         if (error != null || saving) return
         saving = true
