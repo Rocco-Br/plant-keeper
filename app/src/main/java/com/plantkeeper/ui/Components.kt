@@ -4,7 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -149,6 +154,7 @@ fun app(): PlantKeeperApp = LocalContext.current.applicationContext as PlantKeep
 fun PkScaffold(
     title: String,
     eyebrow: String? = null,
+    greeting: String? = null,
     onBack: (() -> Unit)? = null,
     backIcon: ImageVector = Icons.AutoMirrored.Outlined.ArrowBack,
     actions: @Composable RowScope.() -> Unit = {},
@@ -179,6 +185,13 @@ fun PkScaffold(
                         modifier = Modifier.align(Alignment.TopEnd).offset(x = 18.dp, y = (-6).dp).size(124.dp).rotate(-18f),
                     )
                     Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 10.dp)) {
+                        if (greeting != null) {
+                            // Begroeting schuift bij het openen zacht in beeld.
+                            val shown = remember { MutableTransitionState(false) }.apply { targetState = true }
+                            AnimatedVisibility(shown, enter = fadeIn(tween(700)) + slideInHorizontally(tween(700)) { -it / 5 }) {
+                                Text(greeting, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                         if (eyebrow != null) Eyebrow(eyebrow)
                         Text(title, style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurface)
                     }

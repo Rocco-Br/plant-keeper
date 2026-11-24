@@ -22,7 +22,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.datastore.preferences.core.edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.Info
@@ -94,9 +101,23 @@ fun MoreScreen(nav: NavController) {
     val context = LocalContext.current
     val seeds by app().db.dao().seeds().collectAsState(initial = emptyList())
     val lastExport by remember { context.settings.data.map { it[SettingKeys.LAST_EXPORT] } }.collectAsState(initial = null)
+    val name by remember { context.settings.data.map { it[SettingKeys.USER_NAME].orEmpty() } }.collectAsState(initial = "")
+    var editName by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    if (editName) {
+        NameDialog(name, onDismiss = { editName = false }) { new ->
+            editName = false
+            scope.launch { context.settings.edit { it[SettingKeys.USER_NAME] = new.trim() } }
+        }
+    }
 
     PkScaffold(title = "Meer", eyebrow = "Instellingen") { _ ->
         Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            MenuRow(
+                Icons.Filled.Face, "Jouw naam", name.ifBlank { "Nog niet ingesteld" },
+                MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer,
+            ) { editName = true }
             MenuRow(
                 Icons.Filled.Notifications, "Herinneringen", "${seeds.count { it.reminder }} van ${seeds.size} zaden staan aan",
                 MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer,
@@ -112,6 +133,26 @@ fun MoreScreen(nav: NavController) {
             }
         }
     }
+}
+
+/** Naam wijzigen; de app gebruikt hem in de begroeting op het startscherm. */
+@Composable
+private fun NameDialog(current: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    var value by remember { mutableStateOf(current) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Hoe mag ik je noemen?", style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            TextField(
+                value = value, onValueChange = { value = it.take(40) }, singleLine = true,
+                placeholder = { Text("Je voornaam") }, shape = FieldShape, colors = pkFieldColors(),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            )
+        },
+        confirmButton = { TextButton(onClick = { onSave(value) }) { Text("Opslaan") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuleren") } },
+        shape = MaterialTheme.shapes.extraLarge,
+    )
 }
 
 fun fmtTimestamp(millis: Long): String = SimpleDateFormat("d MMM yyyy, HH:mm", Locale("nl")).format(Date(millis))

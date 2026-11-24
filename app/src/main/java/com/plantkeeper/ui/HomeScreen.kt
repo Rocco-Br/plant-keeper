@@ -54,6 +54,11 @@ import com.plantkeeper.data.isExpired
 import com.plantkeeper.data.outdoor
 import com.plantkeeper.data.sowableIn
 import java.time.LocalDate
+import java.time.LocalTime
+import androidx.compose.runtime.remember
+import com.plantkeeper.data.SettingKeys
+import com.plantkeeper.data.settings
+import kotlinx.coroutines.flow.map
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -65,7 +70,10 @@ fun HomeScreen(nav: NavController) {
     val (indoor, outdoor) = sowableIn(seeds, month)
     val perMonth = (1..12).map { m -> seeds.count { it.indoor?.contains(m) == true || it.outdoor?.contains(m) == true } }
 
-    PkScaffold(title = "Nu zaaibaar", eyebrow = "Zaaikalender") { padding ->
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val name by remember { context.settings.data.map { it[SettingKeys.USER_NAME].orEmpty() } }.collectAsState(initial = null)
+
+    PkScaffold(title = "Nu zaaibaar", greeting = name?.let { greeting(LocalTime.now().hour, it) }) { padding ->
         LazyColumn(contentPadding = padding) {
             item { SeasonHero(today, indoor.size, outdoor.size, perMonth) }
             section(true, indoor, month, today.year, { it.indoor!! }, nav)

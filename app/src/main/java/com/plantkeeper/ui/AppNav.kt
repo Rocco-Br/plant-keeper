@@ -41,6 +41,7 @@ object Routes {
     const val MORE = "more"
     const val REMINDERS = "reminders"
     const val BACKUP = "backup"
+    const val WELCOME = "welcome"
     fun seed(id: String) = "seed/$id"
     fun seedForm(id: String? = null, mother: String? = null) = "seedForm?id=${id.orEmpty()}&mother=${mother.orEmpty()}"
     fun plant(id: String) = "plant/$id"
@@ -57,7 +58,7 @@ private val tabs = listOf(
 )
 
 @Composable
-fun AppNav() {
+fun AppNav(showWelcome: Boolean = false) {
     val nav = rememberNavController()
     val current by nav.currentBackStackEntryAsState()
     val route = current?.destination?.route
@@ -85,13 +86,16 @@ fun AppNav() {
         },
     ) { padding ->
         NavHost(
-            nav, startDestination = Routes.HOME, modifier = Modifier.padding(padding),
+            nav, startDestination = if (showWelcome) Routes.WELCOME else Routes.HOME, modifier = Modifier.padding(padding),
             // Rustige, korte overgangen: invagen en een klein stukje meeschuiven.
             enterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(280)) { it / 10 } },
             exitTransition = { fadeOut(tween(160)) },
             popEnterTransition = { fadeIn(tween(220)) },
             popExitTransition = { fadeOut(tween(160)) + slideOutHorizontally(tween(240)) { it / 10 } },
         ) {
+            composable(Routes.WELCOME) {
+                WelcomeScreen(onDone = { nav.navigate(Routes.HOME) { popUpTo(Routes.WELCOME) { inclusive = true } } })
+            }
             composable(Routes.HOME) { HomeScreen(nav) }
             composable(Routes.SEEDS) { SeedListScreen(nav) }
             composable("seed/{id}") { SeedDetailScreen(nav, it.arg("id")!!) }

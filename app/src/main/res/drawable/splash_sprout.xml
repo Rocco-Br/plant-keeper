@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Opstartanimatie (Android 12+): zaadje veert op, steel groeit, blaadjes ontvouwen na elkaar. Totaal ~950 ms. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector android:width="108dp" android:height="108dp"
+            android:viewportWidth="108" android:viewportHeight="108">
+            <path android:name="stem" android:pathData="M54,70 C54,62 54,56 54,48"
+                android:strokeColor="#FFF3F8EC" android:strokeWidth="4.5" android:strokeLineCap="round"
+                android:trimPathEnd="0" />
+            <group android:name="leafLeft" android:pivotX="54" android:pivotY="56" android:scaleX="0" android:scaleY="0">
+                <path android:pathData="M54,56 C46,57 37,52 35,40 C46,39 54,45 54,56 Z" android:fillColor="#FFF3F8EC" />
+            </group>
+            <group android:name="leafRight" android:pivotX="54" android:pivotY="50" android:scaleX="0" android:scaleY="0">
+                <path android:pathData="M54,50 C55,40 63,32 75,32 C75,44 67,51 54,50 Z" android:fillColor="#FFB5D98A" />
+            </group>
+            <group android:name="seed" android:pivotX="54" android:pivotY="82" android:scaleX="0" android:scaleY="0">
+                <path android:pathData="M39,73 C39,66 46,63 54,63 C62,63 69,66 69,73 C69,79 62,82 54,82 C46,82 39,79 39,73 Z" android:fillColor="#FFE58A5F" />
+                <path android:pathData="M45,70 C47,67 50,66 53,66" android:strokeColor="#66FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" />
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="seed">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator android:propertyName="scaleX" android:valueFrom="0" android:valueTo="1" android:duration="380" android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator android:propertyName="scaleY" android:valueFrom="0" android:valueTo="1" android:duration="380" android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="stem">
+        <aapt:attr name="android:animation">
+            <objectAnimator android:propertyName="trimPathEnd" android:valueFrom="0" android:valueTo="1" android:startOffset="260" android:duration="320" android:interpolator="@android:interpolator/fast_out_slow_in" />
+        </aapt:attr>
+    </target>
+    <target android:name="leafLeft">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator android:propertyName="scaleX" android:valueFrom="0" android:valueTo="1" android:startOffset="480" android:duration="340" android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator android:propertyName="scaleY" android:valueFrom="0" android:valueTo="1" android:startOffset="480" android:duration="340" android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="leafRight">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator android:propertyName="scaleX" android:valueFrom="0" android:valueTo="1" android:startOffset="600" android:duration="360" android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator android:propertyName="scaleY" android:valueFrom="0" android:valueTo="1" android:startOffset="600" android:duration="360" android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>
