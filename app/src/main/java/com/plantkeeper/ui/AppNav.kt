@@ -72,6 +72,9 @@ fun AppNav() {
             composable(Routes.SEEDS) { SeedListScreen(nav) }
             composable("seed/{id}") { SeedDetailScreen(nav, it.arg("id")!!) }
             composable("seedForm?id={id}&mother={mother}") { SeedFormScreen(nav, it.arg("id"), it.arg("mother")) }
+            composable(Routes.PLANTS) { PlantListScreen(nav) }
+            composable("plant/{id}") { PlantDetailScreen(nav, it.arg("id")!!) }
+            composable("plantForm?id={id}&seed={seed}") { PlantFormScreen(nav, it.arg("id"), it.arg("seed")) }
         }
     }
 }
