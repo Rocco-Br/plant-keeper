@@ -6,7 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -14,6 +14,7 @@ import com.plantkeeper.data.SettingKeys
 import com.plantkeeper.data.settings
 import com.plantkeeper.ui.AppNav
 import com.plantkeeper.ui.PlantKeeperTheme
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +34,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PlantKeeperTheme {
-                val welcomed by remember { settings.data.map { it[SettingKeys.WELCOMED] ?: false } }.collectAsState(initial = null)
+                // Eén keer lezen bij het opstarten: het welkomstscherm zet de vlag zelf en mag daarna zijn begroeting en rondleiding afmaken.
+                val welcomed by produceState<Boolean?>(null) { value = settings.data.map { it[SettingKeys.WELCOMED] ?: false }.first() }
                 LaunchedEffect(welcomed) { if (welcomed != null) ready = true }
                 welcomed?.let { AppNav(showWelcome = !it) }
             }

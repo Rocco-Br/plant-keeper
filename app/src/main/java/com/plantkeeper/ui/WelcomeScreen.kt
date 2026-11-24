@@ -3,6 +3,7 @@ package com.plantkeeper.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +58,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var step by rememberSaveable { mutableIntStateOf(0) }
     var saving by remember { mutableStateOf(false) }
+    var greet by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         // Na het zaadje komen titel, uitleg en de naamvraag na elkaar in beeld.
@@ -71,7 +73,8 @@ fun WelcomeScreen(onDone: () -> Unit) {
         saving = true
         scope.launch {
             context.settings.edit { it[SettingKeys.USER_NAME] = value.trim(); it[SettingKeys.WELCOMED] = true }
-            onDone()
+            // Met een naam eerst een persoonlijke begroeting; overslaan gaat meteen door.
+            if (value.isNotBlank()) greet = value.trim() else onDone()
         }
     }
 
@@ -115,6 +118,9 @@ fun WelcomeScreen(onDone: () -> Unit) {
                     PkButton("Overslaan", { finish("") }, Modifier.align(Alignment.CenterHorizontally), kind = ButtonKind.Text, enabled = !saving)
                 }
             }
+        }
+        AnimatedVisibility(greet != null, enter = fadeIn(Motion.tween(Motion.LONG))) {
+            Celebration("Hoi ${greet.orEmpty()}!", "Fijn dat je er bent. Tijd om te zaaien!", durationMs = 3600, onDone = onDone)
         }
     }
 }
