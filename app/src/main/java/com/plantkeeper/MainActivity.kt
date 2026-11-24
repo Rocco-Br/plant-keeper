@@ -1,34 +1,44 @@
 package com.plantkeeper
 
 import android.os.Bundle
+import android.view.animation.AnticipateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.plantkeeper.data.SettingKeys
+import com.plantkeeper.data.settings
+import com.plantkeeper.ui.AppNav
+import com.plantkeeper.ui.PlantKeeperTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        // Het opstartscherm blijft staan tot we weten of het welkomstscherm nog moet komen, zodat er niets knippert.
+        var ready = false
+        splash.setKeepOnScreenCondition { !ready }
+        splash.setOnExitAnimationListener { provider ->
+            provider.iconView.animate().scaleX(1.25f).scaleY(1.25f).alpha(0f)
+                .setDuration(320).setInterpolator(AnticipateInterpolator()).start()
+            provider.view.animate().alpha(0f).setStartDelay(120).setDuration(320).withEndAction { provider.remove() }.start()
+        }
+
         setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    StartScreen()
-                }
+            PlantKeeperTheme {
+                // Eén keer lezen bij het opstarten: het welkomstscherm zet de vlag zelf en mag daarna zijn begroeting en rondleiding afmaken.
+                val welcomed by produceState<Boolean?>(null) { value = settings.data.map { it[SettingKeys.WELCOMED] ?: false }.first() }
+                LaunchedEffect(welcomed) { if (welcomed != null) ready = true }
+                welcomed?.let { AppNav(showWelcome = !it) }
             }
         }
-    }
-}
-
-@Composable
-fun StartScreen() {
-    // Placeholder tot de wireframes klaar zijn. Zie FEATURES.md.
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Nu zaaibaar")
     }
 }
