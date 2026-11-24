@@ -1,21 +1,23 @@
 package com.plantkeeper.ui
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.graphicsLayer
-import kotlinx.coroutines.delay
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,21 +31,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.TextField
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Grain
 import androidx.compose.material.icons.outlined.HourglassBottom
 import androidx.compose.material.icons.outlined.HourglassDisabled
@@ -54,36 +50,24 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Scale
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material.icons.outlined.StickyNote2
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Yard
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -133,7 +117,7 @@ fun SeedListScreen(nav: NavController) {
                         leading = { Thumb(seed.name, seed.photo, Icons.Outlined.Grain) },
                         onClick = { nav.navigate(Routes.seed(seed.id)) },
                         modifier = Modifier.animateItem().appear(index),
-                        trailing = { if (seed.isExpired(year)) ExpiredBadge() else Chevron() },
+                        trailing = { if (seed.isExpired(year)) ExpiredLabel() else Chevron() },
                     )
                 }
             }
@@ -142,64 +126,7 @@ fun SeedListScreen(nav: NavController) {
 }
 
 @Composable
-fun SearchField(query: String, onChange: (String) -> Unit) {
-    TextField(
-        value = query,
-        onValueChange = onChange,
-        placeholder = { Text("Zoek op naam") },
-        leadingIcon = { Icon(Icons.Outlined.Search, null) },
-        trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { onChange("") }) { Icon(Icons.Outlined.Close, "Wissen") } },
-        singleLine = true,
-        shape = CircleShape,
-        colors = pkFieldColors(),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-    )
-}
-
-/** Grote toevoegknop in bladvorm. */
-@Composable
-fun AddFab(label: String, expanded: Boolean = true, onClick: () -> Unit) {
-    // Klapt in tot alleen het plusje zodra je scrolt, en springt de eerste keer zacht in beeld.
-    var shown by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(Unit) { shown = true }
-    val scale by animateFloatAsState(if (shown) 1f else 0f, spring(dampingRatio = 0.55f, stiffness = 320f), label = "fab")
-    ExtendedFloatingActionButton(
-        onClick = onClick,
-        expanded = expanded,
-        modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
-        icon = { Icon(Icons.Outlined.Add, null) },
-        text = { Text(label, style = MaterialTheme.typography.titleMedium) },
-        shape = leaf(26.dp, 10.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-    )
-}
-
-/** Brede hoofdknop, hoog en rond. */
-@Composable
-fun BigButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector?, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    Button(
-        onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().height(60.dp), shape = leaf(26.dp, 10.dp),
-    ) {
-        if (icon != null) {
-            Icon(icon, null)
-            Spacer(Modifier.width(10.dp))
-        }
-        Text(text, style = MaterialTheme.typography.titleMedium)
-    }
-}
-
-@Composable
-fun DeleteButton(text: String, onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-        Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.width(8.dp))
-        Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
-    }
-}
-
-@Composable
-fun ExpiredBadge(text: String = "verlopen") = Badge(text, Icons.Outlined.HourglassDisabled)
+fun ExpiredLabel(text: String = "verlopen") = Label(text, Tone.Warn, Icons.Outlined.HourglassDisabled)
 
 // ---------- Detail ----------
 
@@ -218,10 +145,10 @@ fun SeedDetailScreen(nav: NavController, id: String) {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
     } else {
         DetailScaffold(s.name, s.photo, Icons.Outlined.Grain, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(Routes.seedForm(id)) }) {
-            DetailTitle(s.kind.ifBlank { "Zaad" }, s.name)
-            if (s.isExpired(today.year)) ExpiredBadge("Verlopen sinds ${s.expiryYear}")
             val expired = s.isExpired(today.year)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DetailTitle(s.kind.ifBlank { "Zaad" }, s.name)
+            if (expired) ExpiredLabel("Verlopen sinds ${s.expiryYear}")
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                 Fact(
                     Icons.Outlined.Scale, "Voorraad", qtyText(s.quantity, s.unit), Modifier.weight(1f),
                     MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer,
@@ -234,35 +161,29 @@ fun SeedDetailScreen(nav: NavController, id: String) {
                 Fact(Icons.Outlined.Inventory2, "Bewaarplek", s.storage.ifBlank { "Onbekend" }, Modifier.weight(1f), pk.indoorContainer, pk.onIndoorContainer)
             }
             MotherLink(nav, s)
+            PkButton("Zaaien", { nav.navigate(Routes.plantForm(seed = s.id)) }, icon = Icons.Outlined.LocalFlorist)
             SectionCard("Zaaitijden", Icons.Outlined.CalendarMonth) {
                 SowingGrid(s.indoor, s.outdoor, today.monthValue)
             }
             ReminderCard(s, today)
-            BigButton("Zaaien", Icons.Outlined.LocalFlorist, { nav.navigate(Routes.plantForm(seed = s.id)) })
-            SectionCard("Gezaaid (${plants.size})", Icons.Outlined.LocalFlorist) {
+            SectionCard("Gezaaid", Icons.Outlined.LocalFlorist, trailing = { Label("${plants.size}", Tone.Info) }) {
                 if (plants.isEmpty()) {
-                    Text("Nog niet gezaaid. Tik op Zaaien om de eerste zaai vast te leggen.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Hint("Nog niet gezaaid. Tik op Zaaien om de eerste zaai vast te leggen.")
                 }
                 plants.forEach { p ->
-                    Row(
-                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.surfaceContainer)
-                            .clickable { nav.navigate(Routes.plant(p.id)) }
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Tile(onClick = { nav.navigate(Routes.plant(p.id)) }) {
                         Column(Modifier.weight(1f)) {
                             Text(fmtDate(p.sowDate), style = MaterialTheme.typography.titleSmall)
-                            Text(p.location.ifBlank { "Geen locatie" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(p.location.ifBlank { "Geen locatie" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        StatusPill(p.status)
+                        StatusLabel(p.status)
                     }
                 }
             }
             if (s.notes.isNotBlank()) {
-                SectionCard("Notities", Icons.Outlined.StickyNote2) { Text(s.notes) }
+                SectionCard("Notities", Icons.AutoMirrored.Outlined.StickyNote2) { Text(s.notes, style = MaterialTheme.typography.bodyMedium) }
             }
-            DeleteButton("Zaad verwijderen") { confirmDelete = true }
+            PkButton("Zaad verwijderen", { confirmDelete = true }, Modifier.fillMaxWidth(), Icons.Outlined.Delete, ButtonKind.Danger)
         }
     }
 
@@ -291,18 +212,13 @@ private fun MotherLink(nav: NavController, seed: Seed) {
     val dao = app().db.dao()
     val mother by remember(motherId) { dao.plant(motherId) }.collectAsState(initial = null)
     val m = mother ?: return
-    Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primaryContainer)
-            .clickable { nav.navigate(Routes.plant(m.id)) }.padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Tile(onClick = { nav.navigate(Routes.plant(m.id)) }, container = MaterialTheme.colorScheme.primaryContainer) {
         Icon(Icons.Outlined.Recycling, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-        Spacer(Modifier.width(10.dp))
         Text(
             "Gewonnen van ${m.name}" + (seed.seedHarvestDate?.let { " op ${fmtDate(it)}" } ?: ""),
-            color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.weight(1f),
         )
-        Chevron()
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 
@@ -312,21 +228,15 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
     val scope = rememberCoroutineScope()
     val next = seed.nextReminderDate(today)
     val permission = rememberNotificationPermission()
-    SectionCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(if (seed.reminder) Icons.Outlined.Notifications else Icons.Outlined.NotificationsOff, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text("Herinnering", fontWeight = FontWeight.SemiBold)
-                Text(
-                    when {
-                        next == null -> "Geen zaaiperiode ingesteld"
-                        seed.reminder -> "Volgende melding op ${fmtLongDate(next)}"
-                        else -> "Uit. Zet aan voor een melding op ${fmtLongDate(next)}"
-                    },
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    SectionCard(
+        "Herinnering",
+        if (seed.reminder) Icons.Outlined.Notifications else Icons.Outlined.NotificationsOff,
+        subtitle = when {
+            next == null -> "Geen zaaiperiode ingesteld"
+            seed.reminder -> "Melding op ${fmtLongDate(next)}"
+            else -> "Uit. Zet aan voor een melding op ${fmtLongDate(next)}"
+        },
+        trailing = {
             Switch(
                 checked = seed.reminder,
                 enabled = next != null,
@@ -334,15 +244,17 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
                     scope.launch { dao.setReminder(seed.id, on) }
                     if (on && !permission.granted) permission.request()
                 },
+                modifier = Modifier.semantics { contentDescription = "Herinnering" },
             )
-        }
-    }
+        },
+    )
 }
 
 /** Jaarbalk: 12 maanden, binnen in terracotta en buiten in bladgroen, de huidige maand met een zonnetje erboven. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SowingGrid(indoor: MonthRange?, outdoor: MonthRange?, currentMonth: Int) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
         Row {
             MONTH_LETTERS.forEachIndexed { i, l ->
                 val now = i + 1 == currentMonth
@@ -362,14 +274,12 @@ fun SowingGrid(indoor: MonthRange?, outdoor: MonthRange?, currentMonth: Int) {
             }
         }
         // De balken vegen van januari naar december in beeld, buiten iets na binnen.
-        var wiped by rememberSaveable { mutableStateOf(false) }
-        val wipe = remember { Animatable(if (wiped) 1f else 0f) }
-        LaunchedEffect(Unit) { if (!wiped) { delay(200); wipe.animateTo(1f, tween(900, easing = FastOutSlowInEasing)); wiped = true } }
-        GridRow(indoor, pk.indoor, currentMonth, (wipe.value * 1.15f).coerceAtMost(1f))
-        GridRow(outdoor, pk.outdoor, currentMonth, ((wipe.value - 0.13f) * 1.15f).coerceIn(0f, 1f))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Pill("Binnen ${periodText(indoor)}", pk.indoorContainer, pk.onIndoorContainer, Icons.Outlined.House)
-            Pill("Buiten ${periodText(outdoor)}", pk.outdoorContainer, pk.onOutdoorContainer, Icons.Outlined.Yard)
+        val wipe = rememberReveal(delayMs = 200)
+        GridRow(indoor, pk.indoor, currentMonth, (wipe * 1.15f).coerceAtMost(1f))
+        GridRow(outdoor, pk.outdoor, currentMonth, ((wipe - 0.13f) * 1.15f).coerceIn(0f, 1f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Space.s), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            Label("Binnen ${periodText(indoor)}", pk.indoorContainer to pk.onIndoorContainer, Icons.Outlined.House)
+            Label("Buiten ${periodText(outdoor)}", pk.outdoorContainer to pk.onOutdoorContainer, Icons.Outlined.Yard)
         }
     }
 }
@@ -491,89 +401,43 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
     ) { padding ->
         if (!loaded) return@PkScaffold
         Column(
-            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = Space.l, vertical = Space.s),
+            verticalArrangement = Arrangement.spacedBy(Space.m),
         ) {
             FormError(error)
             PhotoPickerField(name, photo, picked) { picked = it }
             if (mother != null) {
-                FormSection("Zaadgewinning", Icons.Outlined.Recycling) {
+                SectionCard("Zaadgewinning", Icons.Outlined.Recycling) {
                     val motherName by remember(mother) { dao.plant(mother!!) }.collectAsState(initial = null)
                     motherName?.let { Hint("Gekoppeld aan moederplant ${it.name}") }
                     DateField("Zaad geoogst op", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
                 }
             }
-            FormSection("Over dit zaad", Icons.Outlined.Grain) {
+            SectionCard("Over dit zaad", Icons.Outlined.Grain) {
                 Field("Naam", name, { name = it }, placeholder = "Bijvoorbeeld Tomaat ‘Moneymaker’")
                 Field("Soort", kind, { kind = it }, placeholder = "Tomaat, kruid, bol...")
             }
-            FormSection("Voorraad", Icons.Outlined.Scale) {
-                Field("Hoeveelheid", quantity, { quantity = it }, keyboard = KeyboardType.Decimal)
+            SectionCard("Voorraad", Icons.Outlined.Scale) {
+                Field("Hoeveelheid", quantity, { quantity = it }, keyboard = KeyboardType.Decimal, imeAction = ImeAction.Done)
                 ChoiceChips(QuantityUnit.entries, unit, { it.plural }, { unit = it })
                 Hint("Een schatting is genoeg. De voorraad gaat niet automatisch omlaag bij zaaien.")
             }
-            FormSection("Bewaren", Icons.Outlined.Inventory2, tint = pk.indoor) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            SectionCard("Bewaren", Icons.Outlined.Inventory2, tint = pk.indoor) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                     Field("Houdbaar tot", expiry, { expiry = it }, Modifier.weight(1f), KeyboardType.Number, placeholder = "2027")
-                    Field("Bewaarplek", storage, { storage = it }, Modifier.weight(1.4f), placeholder = "Bus 3, kast")
+                    Field("Bewaarplek", storage, { storage = it }, Modifier.weight(1.4f), placeholder = "Bus 3, kast", imeAction = ImeAction.Done)
                 }
             }
-            FormSection("Zaaitijden", Icons.Outlined.CalendarMonth) {
+            SectionCard("Zaaitijden", Icons.Outlined.CalendarMonth) {
                 MonthRangePicker("Binnen", Icons.Outlined.House, pk.indoor, pk.onIndoor, pk.indoorContainer, inStart, inEnd) { s, e -> inStart = s; inEnd = e }
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Space.xs))
                 MonthRangePicker("Buiten", Icons.Outlined.Yard, pk.outdoor, pk.onOutdoor, pk.outdoorContainer, outStart, outEnd) { s, e -> outStart = s; outEnd = e }
                 Hint("Een periode mag over de jaarwissel lopen: tik eerst november, dan maart.")
             }
-            FormSection("Notities", Icons.Outlined.StickyNote2) {
+            SectionCard("Notities", Icons.AutoMirrored.Outlined.StickyNote2) {
                 Field("Notities", notes, { notes = it }, singleLine = false)
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(Space.xl))
         }
-    }
-}
-
-/** Opslaan-knop rechtsboven in een formulier. */
-@Composable
-fun SaveButton(enabled: Boolean, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = enabled, modifier = Modifier.padding(end = 8.dp), shape = leaf(18.dp, 6.dp)) {
-        Icon(Icons.Outlined.Check, null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(6.dp))
-        Text("Opslaan")
-    }
-}
-
-@Composable
-fun Field(
-    label: String,
-    value: String,
-    onChange: (String) -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
-    keyboard: KeyboardType = KeyboardType.Text,
-    placeholder: String? = null,
-    singleLine: Boolean = true,
-) {
-    TextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(label) },
-        placeholder = placeholder?.let { { Text(it) } },
-        singleLine = singleLine,
-        minLines = if (singleLine) 1 else 3,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboard),
-        shape = FieldShape,
-        colors = pkFieldColors(),
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun Hint(text: String) = Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-@Composable
-fun GroupLabel(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
     }
 }

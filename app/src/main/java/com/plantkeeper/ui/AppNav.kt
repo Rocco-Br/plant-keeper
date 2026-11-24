@@ -1,10 +1,7 @@
 package com.plantkeeper.ui
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.LocalFlorist
@@ -24,7 +21,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -87,11 +83,10 @@ fun AppNav(showWelcome: Boolean = false) {
     ) { padding ->
         NavHost(
             nav, startDestination = if (showWelcome) Routes.WELCOME else Routes.HOME, modifier = Modifier.padding(padding),
-            // Rustige, korte overgangen: invagen en een klein stukje meeschuiven.
-            enterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(280)) { it / 10 } },
-            exitTransition = { fadeOut(tween(160)) },
-            popEnterTransition = { fadeIn(tween(220)) },
-            popExitTransition = { fadeOut(tween(160)) + slideOutHorizontally(tween(240)) { it / 10 } },
+            enterTransition = Motion.navEnter,
+            exitTransition = Motion.navExit,
+            popEnterTransition = Motion.navPopEnter,
+            popExitTransition = Motion.navPopExit,
         ) {
             composable(Routes.WELCOME) {
                 WelcomeScreen(onDone = { nav.navigate(Routes.HOME) { popUpTo(Routes.WELCOME) { inclusive = true } } })

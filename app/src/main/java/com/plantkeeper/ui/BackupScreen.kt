@@ -1,5 +1,7 @@
 package com.plantkeeper.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -7,36 +9,26 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.FolderZip
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.plantkeeper.backup.Backup
@@ -118,35 +110,35 @@ fun BackupScreen(nav: NavController) {
 
     PkScaffold(title = "Backup", onBack = { nav.popBackStack() }) { padding ->
         Column(
-            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = Space.l, vertical = Space.s),
+            verticalArrangement = Arrangement.spacedBy(Space.m),
         ) {
             FormError(error)
-            message?.let { Note(Icons.Outlined.FolderZip, it) }
-            SectionCard("Exporteren", Icons.Outlined.Download, tint = pk.outdoor) {
-                Text("Eén ZIP met al je zaden, planten en foto's. Bewaar hem op een veilige plek, het bestand is niet versleuteld.")
-                Hint("${count(seeds.size, "zaad", "zaden")} · ${count(plants.size, "plant", "planten")} · ${count(photoCount, "foto", "foto's")}")
-                BigButton("Exporteer ZIP", Icons.Outlined.Download, { exportLauncher.launch("plant-keeper-${LocalDate.now()}.zip") }, enabled = !busy)
-                lastExport?.let { Hint("Laatste export: ${fmtTimestamp(it)}") }
+            message?.let { Notice(Icons.Outlined.CheckCircle, it) }
+            SectionCard(
+                "Exporteren", Icons.Outlined.Download, tint = pk.outdoor,
+                subtitle = "${count(seeds.size, "zaad", "zaden")} · ${count(plants.size, "plant", "planten")} · ${count(photoCount, "foto", "foto's")}",
+            ) {
+                Text("Eén ZIP met al je zaden, planten en foto's. Bewaar hem op een veilige plek, het bestand is niet versleuteld.", style = MaterialTheme.typography.bodyMedium)
+                PkButton("Exporteer ZIP", { exportLauncher.launch("plant-keeper-${LocalDate.now()}.zip") }, icon = Icons.Outlined.Download, enabled = !busy)
+                Hint(lastExport?.let { "Laatste export: ${fmtTimestamp(it)}" } ?: "Nog nooit geëxporteerd")
             }
             SectionCard("Importeren", Icons.Outlined.Upload, tint = pk.indoor) {
-                Text("Kies een eerder geëxporteerde ZIP en bepaal wat er met je huidige data gebeurt.")
-                FilledTonalButton(onClick = { importLauncher.launch(arrayOf("application/zip", "application/octet-stream")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.UploadFile, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(zip?.let { displayName(context, Uri.parse(it)) } ?: "Kies ZIP-bestand")
-                }
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    SegmentedButton(!replace, { replace = false }, SegmentedButtonDefaults.itemShape(0, 2)) { Text("Samenvoegen") }
-                    SegmentedButton(replace, { replace = true }, SegmentedButtonDefaults.itemShape(1, 2)) { Text("Vervangen") }
-                }
+                Text("Kies een eerder geëxporteerde ZIP en bepaal wat er met je huidige data gebeurt.", style = MaterialTheme.typography.bodyMedium)
+                PkButton(
+                    zip?.let { displayName(context, Uri.parse(it)) } ?: "Kies ZIP-bestand",
+                    { importLauncher.launch(arrayOf("application/zip", "application/octet-stream")) },
+                    icon = Icons.Outlined.UploadFile, kind = ButtonKind.Tonal, enabled = !busy,
+                )
+                ChoiceChips(listOf(false, true), replace, { if (it) "Vervangen" else "Samenvoegen" }, { replace = it })
                 Hint(
                     if (replace) "Al je huidige zaden, planten en foto's worden gewist en vervangen door de inhoud van de ZIP."
                     else "Items die al bestaan worden bijgewerkt, nieuwe items worden toegevoegd. Er gaat niets verloren.",
                 )
-                BigButton("Importeer", Icons.Outlined.Upload, { if (replace) confirmReplace = true else doImport() }, enabled = zip != null && !busy)
+                PkButton("Importeer", { if (replace) confirmReplace = true else doImport() }, icon = Icons.Outlined.Upload, enabled = zip != null && !busy)
             }
-            Note(Icons.Outlined.Warning, "Verwijder je de app zonder te exporteren, dan ben je al je gegevens kwijt. Er is geen cloud die ze bewaart.", warn = true)
+            Notice(Icons.Outlined.Warning, "Verwijder je de app zonder te exporteren, dan ben je al je gegevens kwijt. Er is geen cloud die ze bewaart.", Tone.Warn)
+            Spacer(Modifier.height(Space.l))
         }
     }
 

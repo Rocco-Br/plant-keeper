@@ -1,15 +1,10 @@
 package com.plantkeeper.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Canvas
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,9 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Grain
-import androidx.compose.material.icons.outlined.HourglassDisabled
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.Yard
 import androidx.compose.material3.Icon
@@ -36,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -103,18 +95,12 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
     item(key = "head-$title") {
         val c = pk
         val (bg, fg) = if (isIndoor) c.indoorContainer to c.onIndoorContainer else c.outdoorContainer to c.onOutdoorContainer
-        Row(Modifier.animateItem().appear(1).padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconBlob(if (isIndoor) Icons.Outlined.House else Icons.Outlined.Yard, bg, fg, 44.dp)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    if (isIndoor) "Op de vensterbank of in de kas" else "In de volle grond",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Pill(count(seeds.size, "zaad", "zaden"), bg, fg)
-        }
+        SectionTitle(
+            title, if (isIndoor) Icons.Outlined.House else Icons.Outlined.Yard, fg,
+            subtitle = if (isIndoor) "Op de vensterbank of in de kas" else "In de volle grond",
+            container = bg, large = true,
+            modifier = Modifier.animateItem().appear(1).padding(start = Space.l + Space.xs, end = Space.l + Space.xs, top = Space.xl, bottom = Space.s),
+        ) { Label(count(seeds.size, "zaad", "zaden"), bg to fg) }
     }
     if (seeds.isEmpty()) {
         item(key = "empty-$title") {
@@ -133,9 +119,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
             modifier = Modifier.animateItem().appear(index + 2),
             trailing = {
                 if (expired || lastMonth) {
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (expired) Badge("verlopen", Icons.Outlined.HourglassDisabled)
-                        if (lastMonth) Badge("laatste maand", warn = false)
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Space.xs)) {
+                        if (expired) ExpiredLabel()
+                        if (lastMonth) Label("laatste maand", Tone.Info)
                     }
                 } else {
                     Chevron()
@@ -151,17 +137,17 @@ private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: Li
     val c = pk
     Column(
         modifier
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(horizontal = Space.l, vertical = Space.xs)
             .fillMaxWidth()
             .clip(leaf(44.dp, 14.dp))
             .background(Brush.linearGradient(c.hero))
-            .padding(22.dp),
+            .padding(Space.xl),
     ) {
         Eyebrow("Deze maand · ${today.year}", c.onHero.copy(alpha = 0.8f))
         Text(MONTHS[today.monthValue - 1].capitalized(), style = MaterialTheme.typography.displayMedium, color = c.onHero)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Space.m))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 CountChip(Icons.Outlined.House, indoor, "binnen", c.indoorContainer, c.onIndoorContainer)
                 CountChip(Icons.Outlined.Yard, outdoor, "buiten", c.outdoorContainer, c.onOutdoorContainer)
             }
@@ -173,9 +159,7 @@ private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: Li
 @Composable
 private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, fg: Color) {
     // Telt op vanaf 0 als het scherm verschijnt, en loopt mee als het aantal verandert.
-    var started by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(Unit) { started = true }
-    val n by animateIntAsState(if (started) target else 0, tween(700, easing = FastOutSlowInEasing), label = "teller")
+    val n by animateIntAsState(if (rememberStarted()) target else 0, Motion.tween(Motion.LONG), label = "teller")
     Row(
         Modifier.clip(CircleShape).background(bg).padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -198,10 +182,8 @@ private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, 
 private fun SowingWheel(perMonth: List<Int>, current: Int) {
     val c = pk
     // Het wiel tekent zich met de klok mee de eerste keer dat het verschijnt.
-    var drawn by rememberSaveable { mutableStateOf(false) }
-    val reveal = remember { Animatable(if (drawn) 1f else 0f) }
-    LaunchedEffect(Unit) { if (!drawn) { delay(150); reveal.animateTo(1f, tween(1100, easing = FastOutSlowInEasing)); drawn = true } }
-    val shown by animateIntAsState(if (reveal.value > 0.5f || drawn) perMonth[current - 1] else 0, tween(600), label = "zaaibaar")
+    val reveal = rememberReveal(delayMs = 150, durationMs = Motion.REVEAL + 200)
+    val shown by animateIntAsState(if (reveal > 0.5f) perMonth[current - 1] else 0, Motion.tween(Motion.LONG), label = "zaaibaar")
     val measurer = rememberTextMeasurer()
     val max = (perMonth.maxOrNull() ?: 0).coerceAtLeast(1)
     val labelStyle = TextStyle(fontFamily = Figtree, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = c.onHero.copy(alpha = 0.75f))
@@ -214,7 +196,7 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
             val center = Offset(size.width / 2, size.height / 2)
             for (i in 0 until 12) {
                 // Elk boogje komt na het vorige: bij reveal 0..1 lopen de 12 maanden achter elkaar in.
-                val local = (reveal.value * 13f - i).coerceIn(0f, 1f)
+                val local = (reveal * 13f - i).coerceIn(0f, 1f)
                 if (local <= 0f) continue
                 val frac = perMonth[i].toFloat() / max
                 val isNow = i + 1 == current

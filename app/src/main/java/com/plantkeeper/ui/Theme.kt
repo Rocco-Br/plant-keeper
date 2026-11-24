@@ -73,18 +73,22 @@ data class PkColors(
     val indoor: Color, val onIndoor: Color, val indoorContainer: Color, val onIndoorContainer: Color,
     val outdoor: Color, val onOutdoor: Color, val outdoorContainer: Color, val onOutdoorContainer: Color,
     val hero: List<Color>, val onHero: Color, val sun: Color,
+    /** Kaarten: in licht wit op crème, in donker net lichter dan de achtergrond zodat ze niet wegzakken. */
+    val card: Color,
 )
 
 private val LightPk = PkColors(
     indoor = Color(0xFFB45A34), onIndoor = Color.White, indoorContainer = Color(0xFFF6DCCD), onIndoorContainer = Color(0xFF5A2410),
     outdoor = Color(0xFF4F7A28), onOutdoor = Color.White, outdoorContainer = Color(0xFFD6EDB4), onOutdoorContainer = Color(0xFF1E3A06),
     hero = listOf(Color(0xFF1F4D33), Color(0xFF2C6A48), Color(0xFF6E9A5A)), onHero = Color(0xFFF3F8EC), sun = Color(0xFFF2C14E),
+    card = Color(0xFFFFFFFF),
 )
 
 private val DarkPk = PkColors(
     indoor = Color(0xFFF0A27F), onIndoor = Color(0xFF4A1A06), indoorContainer = Color(0xFF4E2716), onIndoorContainer = Color(0xFFF9D6C4),
     outdoor = Color(0xFFB5D98A), onOutdoor = Color(0xFF213A05), outdoorContainer = Color(0xFF34521A), onOutdoorContainer = Color(0xFFD6EDB4),
     hero = listOf(Color(0xFF123320), Color(0xFF1F4D33), Color(0xFF3E6B3C)), onHero = Color(0xFFEAF4E2), sun = Color(0xFFF2C14E),
+    card = Color(0xFF182018),
 )
 
 val LocalPkColors = staticCompositionLocalOf { LightPk }
@@ -137,7 +141,23 @@ private val PkTypography = Typography(
     labelSmall = body(11.5f, 14, 600, 0.4f),
 )
 
+// ---------- Ruimte ----------
+
+/** Vaste afstanden. Schermrand = [l], binnenkant kaart = [l], tussen kaarten = [m], binnen een groep = [s]. */
+object Space {
+    val xs = 4.dp
+    val s = 8.dp
+    val m = 12.dp
+    val l = 16.dp
+    val xl = 24.dp
+    val xxl = 32.dp
+}
+
+/** Minimale hoogte van alles wat je aantikt (toegankelijkheid). */
+val TouchTarget = 48.dp
+
 // ---------- Vorm ----------
+// small = maandvakjes, medium = tegels en velden, large = kaarten, extraLarge = vel en dialogen.
 
 private val PkShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
@@ -149,6 +169,9 @@ private val PkShapes = Shapes(
 
 /** Bladvorm: twee ronde en twee bijna scherpe hoeken, zoals een blad. */
 fun leaf(big: Dp, small: Dp = big / 4) = RoundedCornerShape(topStart = big, topEnd = small, bottomEnd = big, bottomStart = small)
+
+/** Eén bladvorm voor alle knoppen. */
+val ButtonShape = leaf(22.dp, 8.dp)
 
 @Composable
 fun PlantKeeperTheme(content: @Composable () -> Unit) {
