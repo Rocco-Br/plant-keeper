@@ -272,6 +272,7 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
     val dao = app().db.dao()
     val scope = rememberCoroutineScope()
     val next = seed.nextReminderDate(today)
+    val permission = rememberNotificationPermission()
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(if (seed.reminder) Icons.Outlined.Notifications else Icons.Outlined.NotificationsOff, null, tint = MaterialTheme.colorScheme.primary)
@@ -290,7 +291,10 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
             Switch(
                 checked = seed.reminder,
                 enabled = next != null,
-                onCheckedChange = { on -> scope.launch { dao.setReminder(seed.id, on) } },
+                onCheckedChange = { on ->
+                    scope.launch { dao.setReminder(seed.id, on) }
+                    if (on && !permission.granted) permission.request()
+                },
             )
         }
     }
