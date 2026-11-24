@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -147,11 +149,13 @@ private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: Li
         Text(MONTHS[today.monthValue - 1].capitalized(), style = MaterialTheme.typography.displayMedium, color = c.onHero)
         Spacer(Modifier.height(Space.m))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            // Tellers houden hun breedte; het wiel krijgt wat overblijft (max 148dp), zodat niets afbreekt op een smal scherm.
+            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 CountChip(Icons.Outlined.House, indoor, "binnen", c.indoorContainer, c.onIndoorContainer)
                 CountChip(Icons.Outlined.Yard, outdoor, "buiten", c.outdoorContainer, c.onOutdoorContainer)
             }
-            SowingWheel(perMonth, today.monthValue)
+            Spacer(Modifier.width(Space.s))
+            SowingWheel(perMonth, today.monthValue, Modifier.weight(1f, fill = false).widthIn(max = 148.dp).aspectRatio(1f))
         }
     }
 }
@@ -170,7 +174,7 @@ private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, 
         Spacer(Modifier.width(8.dp))
         Text("$n", style = MaterialTheme.typography.titleLarge, color = fg)
         Spacer(Modifier.width(5.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, color = fg)
+        Text(label, style = MaterialTheme.typography.labelLarge, color = fg, maxLines = 1, softWrap = false)
     }
 }
 
@@ -179,7 +183,7 @@ private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, 
  * Hoe dikker en lichter een boogje, hoe meer zaden je die maand kunt zaaien. De huidige maand is zonnegeel.
  */
 @Composable
-private fun SowingWheel(perMonth: List<Int>, current: Int) {
+private fun SowingWheel(perMonth: List<Int>, current: Int, modifier: Modifier) {
     val c = pk
     // Het wiel tekent zich met de klok mee de eerste keer dat het verschijnt.
     val reveal = rememberReveal(delayMs = 150, durationMs = Motion.REVEAL + 200)
@@ -189,7 +193,7 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
     val labelStyle = TextStyle(fontFamily = Figtree, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = c.onHero.copy(alpha = 0.75f))
     val currentStyle = labelStyle.copy(color = c.sun, fontWeight = FontWeight.Bold)
     val description = "Zaaibare zaden per maand: " + perMonth.mapIndexed { i, n -> "${MONTHS[i]} $n" }.joinToString(", ")
-    Box(Modifier.size(148.dp).semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
+    Box(modifier.semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
             val labelSpace = 14.dp.toPx()
             val radius = size.minDimension / 2 - labelSpace - 8.dp.toPx()

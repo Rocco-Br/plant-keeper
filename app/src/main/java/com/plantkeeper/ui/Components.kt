@@ -438,7 +438,7 @@ fun Fact(
     ) {
         Icon(icon, null, tint = content, modifier = Modifier.size(22.dp))
         Spacer(Modifier.height(Space.s))
-        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = content.copy(alpha = 0.8f))
+        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = content.copy(alpha = 0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
             value, style = MaterialTheme.typography.titleSmall, color = content, maxLines = 2, overflow = TextOverflow.Ellipsis,
             textDecoration = if (onClick != null) TextDecoration.Underline else null,

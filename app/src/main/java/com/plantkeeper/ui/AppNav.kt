@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -69,7 +70,7 @@ fun AppNav(showWelcome: Boolean = false) {
                             selected = selected,
                             onClick = { nav.switchTab(tab.route) },
                             icon = { Icon(if (selected) tab.selectedIcon else tab.icon, null) },
-                            label = { Text(tab.label, style = MaterialTheme.typography.labelMedium) },
+                            label = { Text(tab.label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             colors = NavigationBarItemDefaults.colors(
                                 indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
