@@ -1,5 +1,8 @@
 package com.plantkeeper.ui
 
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -86,11 +89,13 @@ fun PlantListScreen(nav: NavController) {
     var query by rememberSaveable { mutableStateOf("") }
     val counts = plants.groupingBy { it.status }.eachCount()
     val shown = plants.filter { (filter == null || it.status == filter) && it.name.contains(query.trim(), ignoreCase = true) }
+    val list = rememberLazyListState()
+    val atTop by remember { derivedStateOf { list.firstVisibleItemIndex == 0 } }
 
     PkScaffold(
         title = "Planten",
         eyebrow = "${plants.size} keer gezaaid",
-        fab = { AddFab("Plant") { nav.navigate(Routes.plantForm()) } },
+        fab = { AddFab("Plant", expanded = atTop) { nav.navigate(Routes.plantForm()) } },
     ) { padding ->
         Column {
             SearchField(query) { query = it }
@@ -102,19 +107,20 @@ fun PlantListScreen(nav: NavController) {
                     FilterPill(s.label.capitalized(), counts[s] ?: 0, s.icon, filter == s, statusColors(s)) { filter = if (filter == s) null else s }
                 }
             }
-            LazyColumn(contentPadding = padding) {
+            LazyColumn(state = list, contentPadding = padding) {
                 if (shown.isEmpty()) {
-                    item {
-                        if (plants.isEmpty()) EmptyState(Icons.Outlined.LocalFlorist, "Nog niets gezaaid. Voeg een plant toe met de knop rechtsonder, of tik op Zaaien bij een zaad.")
-                        else EmptyState(Icons.Outlined.FilterAltOff, "Geen planten gevonden.")
+                    item(key = "leeg") {
+                        if (plants.isEmpty()) EmptyState("Nog niets gezaaid. Voeg een plant toe met de knop rechtsonder, of tik op Zaaien bij een zaad.", Mood.HAPPY, Modifier.animateItem())
+                        else EmptyState("Geen planten gevonden.", Mood.CURIOUS, Modifier.animateItem())
                     }
                 }
-                items(shown, key = { it.id }) { p ->
+                itemsIndexed(shown, key = { _, it -> it.id }) { index, p ->
                     ListRow(
                         title = p.name,
                         subtitle = "${fmtDate(p.sowDate)} · ${p.location.ifBlank { "Geen locatie" }}",
                         leading = { Thumb(p.name, p.photo, Icons.Outlined.LocalFlorist) },
                         onClick = { nav.navigate(Routes.plant(p.id)) },
+                        modifier = Modifier.animateItem().appear(index),
                         trailing = { StatusPill(p.status) },
                     )
                 }

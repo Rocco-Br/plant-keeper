@@ -105,7 +105,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(Modifier.height(12.dp))
-            PotMascot(Modifier.size(200.dp).align(Alignment.CenterHorizontally))
+            Mascot(Modifier.size(200.dp).align(Alignment.CenterHorizontally), intro = true, onDark = true)
             AnimatedVisibility(step >= 1, enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { it / 3 }) {
                 Column {
                     Eyebrow("Welkom bij", c.onHero.copy(alpha = 0.8f))
@@ -142,86 +142,6 @@ fun WelcomeScreen(onDone: () -> Unit) {
                         Text("Overslaan")
                     }
                 }
-            }
-        }
-    }
-}
-
-private fun path(d: String) = PathParser().parsePathString(d).toPath()
-private val POT_BODY = path("M41,66 H67 L64,84 Q63.5,86 61,86 H47 Q44.5,86 44,84 Z")
-private val LEAF_LEFT = path("M54,52 C48,54 40,51 39,43 C46,41 53,44 54,52 Z")
-private val LEAF_RIGHT = path("M54,47 C55,39 62,34 70,35 C70,43 63,48 54,47 Z")
-private val SMILE = path("M51.5,80 C53,82 55,82 56.5,80")
-private val DROP = path("M54,24 C57,29 60,32 60,35 C60,38.5 57.3,41 54,41 C50.7,41 48,38.5 48,35 C48,32 51,29 54,24 Z")
-
-/**
- * De mascotte van het app-icoon, maar dan levend: een druppel valt in het potje, het potje veert in,
- * het plantje schiet omhoog en daarna wiegt het zachtjes en knippert het potje af en toe met zijn oogjes.
- * Tekent in de 108-eenheden van het icoon.
- */
-@Composable
-fun PotMascot(modifier: Modifier = Modifier) {
-    val drop = remember { Animatable(0f) }
-    val squash = remember { Animatable(0f) }
-    val grow = remember { Animatable(0f) }
-    val glow = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        launch { drop.animateTo(1f, tween(460, easing = FastOutLinearInEasing)) }
-        delay(400)
-        launch { squash.animateTo(1f, tween(380)) }
-        delay(150)
-        launch { grow.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = 230f)) }
-        delay(250)
-        glow.animateTo(1f, tween(500))
-    }
-    val loop = rememberInfiniteTransition(label = "mascotte")
-    val sway by loop.animateFloat(
-        initialValue = -4f, targetValue = 4f,
-        animationSpec = infiniteRepeatable(tween(2400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "wiegen",
-    )
-    val blink by loop.animateFloat(
-        initialValue = 1f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(keyframes {
-            durationMillis = 3800
-            1f at 3400
-            0.1f at 3500
-            1f at 3600
-        }),
-        label = "knipperen",
-    )
-    val cream = Color(0xFFF3F8EC)
-    val ink = Color(0xFF4A2412)
-    Canvas(modifier) {
-        val unit = size.minDimension / 108f
-        withTransform({ scale(unit, unit, Offset.Zero) }) {
-            drawCircle(Color(0xFFB5D98A).copy(alpha = 0.13f * glow.value), radius = 27f, center = Offset(54f, 54f))
-            // Plantje: groeit vanuit de aarde in het potje, wiegt daarna.
-            scale(1f, grow.value, pivot = Offset(54f, 64f)) {
-                rotate(sway * grow.value.coerceIn(0f, 1f), pivot = Offset(54f, 64f)) {
-                    drawLine(cream, Offset(54f, 64f), Offset(54f, 44f), strokeWidth = 4f, cap = StrokeCap.Round)
-                    drawPath(LEAF_LEFT, cream)
-                    drawPath(LEAF_RIGHT, Color(0xFFB5D98A))
-                }
-            }
-            // Potje met gezichtje; veert in als de druppel landt.
-            val bump = kotlin.math.sin(Math.PI * squash.value).toFloat()
-            scale(1f + 0.09f * bump, 1f - 0.14f * bump, pivot = Offset(54f, 86f)) {
-                drawPath(POT_BODY, Color(0xFFE07B4C))
-                drawRoundRect(Color(0xFFC9653A), Offset(38f, 60f), Size(32f, 8f), CornerRadius(3f))
-                drawLine(Color.White.copy(alpha = 0.35f), Offset(47f, 71f), Offset(48.3f, 80f), strokeWidth = 2f, cap = StrokeCap.Round)
-                drawOval(Color(0xBFFFBEAA), Offset(44.4f, 77.5f), Size(5.2f, 3f))
-                drawOval(Color(0xBFFFBEAA), Offset(58.4f, 77.5f), Size(5.2f, 3f))
-                scale(1f, blink, pivot = Offset(54f, 75f)) {
-                    drawOval(ink, Offset(48.3f, 72.7f), Size(3.4f, 4.6f))
-                    drawOval(ink, Offset(56.3f, 72.7f), Size(3.4f, 4.6f))
-                }
-                drawPath(SMILE, ink, style = Stroke(width = 1.4f, cap = StrokeCap.Round))
-            }
-            // Druppel valt van boven in het potje en verdwijnt bij de rand.
-            if (drop.value < 1f) {
-                val fade = if (drop.value < 0.8f) 1f else (1f - drop.value) / 0.2f
-                translate(top = 22f * drop.value) { drawPath(DROP, Color(0xFF5AA9E0).copy(alpha = fade)) }
             }
         }
     }

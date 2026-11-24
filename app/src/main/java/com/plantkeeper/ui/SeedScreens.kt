@@ -1,5 +1,17 @@
 package com.plantkeeper.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -97,27 +109,30 @@ fun SeedListScreen(nav: NavController) {
     var query by rememberSaveable { mutableStateOf("") }
     val year = LocalDate.now().year
     val shown = seeds.filter { it.name.contains(query.trim(), ignoreCase = true) }
+    val list = rememberLazyListState()
+    val atTop by remember { derivedStateOf { list.firstVisibleItemIndex == 0 } }
 
     PkScaffold(
         title = "Zaden",
         eyebrow = "${count(seeds.size, "soort", "soorten")} in voorraad",
-        fab = { AddFab("Zaad") { nav.navigate(Routes.seedForm()) } },
+        fab = { AddFab("Zaad", expanded = atTop) { nav.navigate(Routes.seedForm()) } },
     ) { padding ->
         Column {
             SearchField(query) { query = it }
-            LazyColumn(contentPadding = padding) {
+            LazyColumn(state = list, contentPadding = padding) {
                 if (shown.isEmpty()) {
-                    item {
-                        if (seeds.isEmpty()) EmptyState(Icons.Outlined.Grain, "Nog geen zaden. Voeg je eerste zaad toe met de knop rechtsonder.")
-                        else EmptyState(Icons.Outlined.SearchOff, "Geen zaden gevonden voor ‘$query’.")
+                    item(key = "leeg") {
+                        if (seeds.isEmpty()) EmptyState("Nog geen zaden. Voeg je eerste zaad toe met de knop rechtsonder.", Mood.HAPPY, Modifier.animateItem())
+                        else EmptyState("Geen zaden gevonden voor ‘$query’.", Mood.CURIOUS, Modifier.animateItem())
                     }
                 }
-                items(shown, key = { it.id }) { seed ->
+                itemsIndexed(shown, key = { _, it -> it.id }) { index, seed ->
                     ListRow(
                         title = seed.name,
                         subtitle = listOf(qtyText(seed.quantity, seed.unit), seed.storage.ifBlank { seed.kind }).filter { it.isNotBlank() }.joinToString(" · "),
                         leading = { Thumb(seed.name, seed.photo, Icons.Outlined.Grain) },
                         onClick = { nav.navigate(Routes.seed(seed.id)) },
+                        modifier = Modifier.animateItem().appear(index),
                         trailing = { if (seed.isExpired(year)) ExpiredBadge() else Chevron() },
                     )
                 }
@@ -143,9 +158,15 @@ fun SearchField(query: String, onChange: (String) -> Unit) {
 
 /** Grote toevoegknop in bladvorm. */
 @Composable
-fun AddFab(label: String, onClick: () -> Unit) {
+fun AddFab(label: String, expanded: Boolean = true, onClick: () -> Unit) {
+    // Klapt in tot alleen het plusje zodra je scrolt, en springt de eerste keer zacht in beeld.
+    var shown by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val scale by animateFloatAsState(if (shown) 1f else 0f, spring(dampingRatio = 0.55f, stiffness = 320f), label = "fab")
     ExtendedFloatingActionButton(
         onClick = onClick,
+        expanded = expanded,
+        modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
         icon = { Icon(Icons.Outlined.Add, null) },
         text = { Text(label, style = MaterialTheme.typography.titleMedium) },
         shape = leaf(26.dp, 10.dp),
@@ -340,8 +361,12 @@ fun SowingGrid(indoor: MonthRange?, outdoor: MonthRange?, currentMonth: Int) {
                 }
             }
         }
-        GridRow(indoor, pk.indoor, currentMonth)
-        GridRow(outdoor, pk.outdoor, currentMonth)
+        // De balken vegen van januari naar december in beeld, buiten iets na binnen.
+        var wiped by rememberSaveable { mutableStateOf(false) }
+        val wipe = remember { Animatable(if (wiped) 1f else 0f) }
+        LaunchedEffect(Unit) { if (!wiped) { delay(200); wipe.animateTo(1f, tween(900, easing = FastOutSlowInEasing)); wiped = true } }
+        GridRow(indoor, pk.indoor, currentMonth, (wipe.value * 1.15f).coerceAtMost(1f))
+        GridRow(outdoor, pk.outdoor, currentMonth, ((wipe.value - 0.13f) * 1.15f).coerceIn(0f, 1f))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Pill("Binnen ${periodText(indoor)}", pk.indoorContainer, pk.onIndoorContainer, Icons.Outlined.House)
             Pill("Buiten ${periodText(outdoor)}", pk.outdoorContainer, pk.onOutdoorContainer, Icons.Outlined.Yard)
@@ -351,8 +376,8 @@ fun SowingGrid(indoor: MonthRange?, outdoor: MonthRange?, currentMonth: Int) {
 
 /** Eén rij van de jaarbalk; aaneengesloten maanden vormen één doorlopende pil. */
 @Composable
-private fun GridRow(range: MonthRange?, on: Color, currentMonth: Int) {
-    Row(Modifier.height(26.dp)) {
+private fun GridRow(range: MonthRange?, on: Color, currentMonth: Int, reveal: Float = 1f) {
+    Row(Modifier.height(26.dp).drawWithContent { clipRect(right = size.width * reveal) { this@drawWithContent.drawContent() } }) {
         for (m in 1..12) {
             val filled = range?.contains(m) == true
             val prev = range?.contains(if (m == 1) 12 else m - 1) == true && m != 1

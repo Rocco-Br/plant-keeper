@@ -1,6 +1,15 @@
 package com.plantkeeper.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bedtime
@@ -75,7 +84,7 @@ fun HomeScreen(nav: NavController) {
 
     PkScaffold(title = "Nu zaaibaar", greeting = name?.let { greeting(LocalTime.now().hour, it) }) { padding ->
         LazyColumn(contentPadding = padding) {
-            item { SeasonHero(today, indoor.size, outdoor.size, perMonth) }
+            item { SeasonHero(today, indoor.size, outdoor.size, perMonth, Modifier.appear()) }
             section(true, indoor, month, today.year, { it.indoor!! }, nav)
             section(false, outdoor, month, today.year, { it.outdoor!! }, nav)
         }
@@ -94,7 +103,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
     item(key = "head-$title") {
         val c = pk
         val (bg, fg) = if (isIndoor) c.indoorContainer to c.onIndoorContainer else c.outdoorContainer to c.onOutdoorContainer
-        Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.animateItem().appear(1).padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconBlob(if (isIndoor) Icons.Outlined.House else Icons.Outlined.Yard, bg, fg, 44.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -108,9 +117,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
         }
     }
     if (seeds.isEmpty()) {
-        item(key = "empty-$title") { EmptyState(Icons.Outlined.Bedtime, "Niets om ${title.lowercase()} te zaaien in ${MONTHS[month - 1]}.") }
+        item(key = "empty-$title") {
+            EmptyState("Niets om ${title.lowercase()} te zaaien in ${MONTHS[month - 1]}.", Mood.SLEEPY, Modifier.animateItem())
+        }
     }
-    items(seeds, key = { "$title-${it.id}" }) { seed ->
+    itemsIndexed(seeds, key = { _, it -> "$title-${it.id}" }) { index, seed ->
         val r = range(seed)
         val expired = seed.isExpired(year)
         val lastMonth = !r.isWholeYear && r.end == month
@@ -119,6 +130,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
             subtitle = "${qtyText(seed.quantity, seed.unit)} · ${if (r.isWholeYear) "hele jaar" else "t/m ${MONTHS_SHORT[r.end - 1]}"}",
             leading = { Thumb(seed.name, seed.photo, Icons.Outlined.Grain) },
             onClick = { nav.navigate(Routes.seed(seed.id)) },
+            modifier = Modifier.animateItem().appear(index + 2),
             trailing = {
                 if (expired || lastMonth) {
                     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -135,10 +147,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.section(
 
 /** Kop met de huidige maand, de aantallen binnen en buiten, en het zaaiwiel. */
 @Composable
-private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: List<Int>) {
+private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: List<Int>, modifier: Modifier = Modifier) {
     val c = pk
     Column(
-        Modifier
+        modifier
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .fillMaxWidth()
             .clip(leaf(44.dp, 14.dp))
@@ -159,7 +171,11 @@ private fun SeasonHero(today: LocalDate, indoor: Int, outdoor: Int, perMonth: Li
 }
 
 @Composable
-private fun CountChip(icon: ImageVector, n: Int, label: String, bg: Color, fg: Color) {
+private fun CountChip(icon: ImageVector, target: Int, label: String, bg: Color, fg: Color) {
+    // Telt op vanaf 0 als het scherm verschijnt, en loopt mee als het aantal verandert.
+    var started by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) { started = true }
+    val n by animateIntAsState(if (started) target else 0, tween(700, easing = FastOutSlowInEasing), label = "teller")
     Row(
         Modifier.clip(CircleShape).background(bg).padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -181,6 +197,11 @@ private fun CountChip(icon: ImageVector, n: Int, label: String, bg: Color, fg: C
 @Composable
 private fun SowingWheel(perMonth: List<Int>, current: Int) {
     val c = pk
+    // Het wiel tekent zich met de klok mee de eerste keer dat het verschijnt.
+    var drawn by rememberSaveable { mutableStateOf(false) }
+    val reveal = remember { Animatable(if (drawn) 1f else 0f) }
+    LaunchedEffect(Unit) { if (!drawn) { delay(150); reveal.animateTo(1f, tween(1100, easing = FastOutSlowInEasing)); drawn = true } }
+    val shown by animateIntAsState(if (reveal.value > 0.5f || drawn) perMonth[current - 1] else 0, tween(600), label = "zaaibaar")
     val measurer = rememberTextMeasurer()
     val max = (perMonth.maxOrNull() ?: 0).coerceAtLeast(1)
     val labelStyle = TextStyle(fontFamily = Figtree, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = c.onHero.copy(alpha = 0.75f))
@@ -192,6 +213,9 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
             val radius = size.minDimension / 2 - labelSpace - 8.dp.toPx()
             val center = Offset(size.width / 2, size.height / 2)
             for (i in 0 until 12) {
+                // Elk boogje komt na het vorige: bij reveal 0..1 lopen de 12 maanden achter elkaar in.
+                val local = (reveal.value * 13f - i).coerceIn(0f, 1f)
+                if (local <= 0f) continue
                 val frac = perMonth[i].toFloat() / max
                 val isNow = i + 1 == current
                 val width = (5 + 9 * frac).dp.toPx() + if (isNow) 3.dp.toPx() else 0f
@@ -203,7 +227,7 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
                 drawArc(
                     color = color,
                     startAngle = -90f + i * 30f + 6f,
-                    sweepAngle = 18f,
+                    sweepAngle = 18f * local,
                     useCenter = false,
                     topLeft = Offset(center.x - radius, center.y - radius),
                     size = Size(radius * 2, radius * 2),
@@ -211,7 +235,7 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
                 )
                 val angle = Math.toRadians((-90.0 + i * 30.0 + 15.0))
                 val labelRadius = radius + labelSpace + 2.dp.toPx()
-                val layout = measurer.measure(MONTH_LETTERS[i], if (isNow) currentStyle else labelStyle)
+                val layout = measurer.measure(MONTH_LETTERS[i], (if (isNow) currentStyle else labelStyle).let { it.copy(color = it.color.copy(alpha = it.color.alpha * local)) })
                 drawText(
                     layout,
                     topLeft = Offset(
@@ -222,7 +246,7 @@ private fun SowingWheel(perMonth: List<Int>, current: Int) {
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${perMonth[current - 1]}", style = MaterialTheme.typography.headlineLarge, color = c.onHero)
+            Text("$shown", style = MaterialTheme.typography.headlineLarge, color = c.onHero)
             Text("zaaibaar", style = MaterialTheme.typography.labelSmall, color = c.onHero.copy(alpha = 0.8f))
         }
     }

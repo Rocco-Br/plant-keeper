@@ -19,7 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
@@ -117,14 +119,17 @@ fun MoreScreen(nav: NavController) {
             MenuRow(
                 Icons.Filled.Face, "Jouw naam", name.ifBlank { "Nog niet ingesteld" },
                 MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer,
+                index = 0,
             ) { editName = true }
             MenuRow(
                 Icons.Filled.Notifications, "Herinneringen", "${seeds.count { it.reminder }} van ${seeds.size} zaden staan aan",
                 MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer,
+                index = 1,
             ) { nav.navigate(Routes.REMINDERS) }
             MenuRow(
                 Icons.Filled.FolderZip, "Backup", lastExport?.let { "Laatste export: ${fmtTimestamp(it)}" } ?: "Nog nooit geëxporteerd",
                 pk.indoorContainer, pk.onIndoorContainer,
+                index = 2,
             ) { nav.navigate(Routes.BACKUP) }
             Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Lock, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
@@ -158,10 +163,11 @@ private fun NameDialog(current: String, onDismiss: () -> Unit, onSave: (String) 
 fun fmtTimestamp(millis: Long): String = SimpleDateFormat("d MMM yyyy, HH:mm", Locale("nl")).format(Date(millis))
 
 @Composable
-private fun MenuRow(icon: ImageVector, title: String, subtitle: String, bg: Color, fg: Color, onClick: () -> Unit) {
+private fun MenuRow(icon: ImageVector, title: String, subtitle: String, bg: Color, fg: Color, index: Int = 0, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
     Row(
-        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLowest)
-            .clickable(onClick = onClick).padding(16.dp),
+        Modifier.appear(index).pressScale(interaction).fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            .clickable(interaction, LocalIndication.current, onClick = onClick).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconBlob(icon, bg, fg, 52.dp)
@@ -215,13 +221,14 @@ fun RemindersScreen(nav: NavController) {
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                 )
             }
-            if (withPeriod.isEmpty()) item { EmptyState(Icons.Outlined.Grain, "Nog geen zaden met een zaaiperiode.") }
-            items(withPeriod, key = { it.id }) { s ->
+            if (withPeriod.isEmpty()) item(key = "leeg") { EmptyState("Nog geen zaden met een zaaiperiode.", Mood.SLEEPY, Modifier.animateItem()) }
+            itemsIndexed(withPeriod, key = { _, it -> it.id }) { index, s ->
                 ListRow(
                     title = s.name,
                     subtitle = if (s.reminder) "Melding op ${fmtLongDate(s.nextReminderDate(today)!!)}" else "Uit",
                     leading = { Thumb(s.name, s.photo, Icons.Outlined.Grain, 40.dp) },
                     onClick = null,
+                    modifier = Modifier.animateItem().appear(index),
                     trailing = {
                         Switch(s.reminder, { on ->
                             scope.launch { dao.setReminder(s.id, on) }

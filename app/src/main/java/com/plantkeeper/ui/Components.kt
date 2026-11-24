@@ -1,6 +1,13 @@
 package com.plantkeeper.ui
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -220,9 +227,13 @@ fun DetailScaffold(
     val scroll = rememberScrollState()
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
-            PhotoHero(name, photo, icon)
+            // Parallax: de foto schuift langzamer weg dan de inhoud en vervaagt een beetje.
+            Box(Modifier.graphicsLayer { translationY = scroll.value * 0.45f; alpha = 1f - (scroll.value / 1400f).coerceIn(0f, 0.5f) }) {
+                PhotoHero(name, photo, icon)
+            }
             Column(
                 Modifier
+                    .appear()
                     .offset(y = (-32).dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 34.dp, topEnd = 34.dp))
@@ -317,11 +328,13 @@ fun Fact(
     content: Color = MaterialTheme.colorScheme.onSurface,
     onClick: (() -> Unit)? = null,
 ) {
+    val interaction = remember { MutableInteractionSource() }
     Column(
         modifier
+            .pressScale(interaction)
             .clip(MaterialTheme.shapes.medium)
             .background(container)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick, role = Role.Button) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(interaction, LocalIndication.current, role = Role.Button, onClick = onClick) else Modifier)
             .padding(14.dp),
     ) {
         Icon(icon, null, tint = content, modifier = Modifier.size(22.dp))
@@ -341,15 +354,18 @@ fun ListRow(
     subtitle: String,
     leading: @Composable () -> Unit,
     onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
     trailing: @Composable () -> Unit = { Chevron() },
 ) {
+    val interaction = remember { MutableInteractionSource() }
     Row(
-        Modifier
+        modifier
             .padding(horizontal = 16.dp, vertical = 5.dp)
+            .pressScale(interaction)
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(interaction, LocalIndication.current, onClick = onClick) else Modifier)
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -367,14 +383,15 @@ fun ListRow(
 @Composable
 fun Chevron() = Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
 
+/** Leeg scherm: de mascotte met een stemming die past bij de situatie, en een korte uitleg. */
 @Composable
-fun EmptyState(icon: ImageVector, text: String) {
+fun EmptyState(text: String, mood: Mood = Mood.HAPPY, modifier: Modifier = Modifier) {
     Column(
-        Modifier.fillMaxWidth().padding(horizontal = 36.dp, vertical = 26.dp),
+        modifier.appear().fillMaxWidth().padding(horizontal = 36.dp, vertical = 18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        IconBlob(icon, MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurfaceVariant, 64.dp)
-        Spacer(Modifier.height(12.dp))
+        Mascot(Modifier.size(132.dp), mood)
+        Spacer(Modifier.height(4.dp))
         Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
     }
 }
@@ -402,8 +419,14 @@ fun Pill(text: String, bg: Color, fg: Color, icon: ImageVector? = null) {
 
 @Composable
 fun StatusPill(status: PlantStatus) {
-    val (bg, fg) = statusColors(status)
-    Pill(status.label, bg, fg, status.icon)
+    AnimatedContent(
+        targetState = status,
+        transitionSpec = { (fadeIn(tween(220)) + scaleIn(initialScale = 0.8f)) togetherWith fadeOut(tween(120)) },
+        label = "status",
+    ) { s ->
+        val (bg, fg) = statusColors(s)
+        Pill(s.label, bg, fg, s.icon)
+    }
 }
 
 /** Status kiezen met grote gekleurde tegels: elke status zijn eigen kleur en icoon. */
