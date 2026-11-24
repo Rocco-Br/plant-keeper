@@ -120,7 +120,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
             }
         }
         AnimatedVisibility(greet != null, enter = fadeIn(Motion.tween(Motion.LONG))) {
-            Celebration("Hoi ${greet.orEmpty()}!", "Fijn dat je er bent. Tijd om te zaaien!", durationMs = 3600, onDone = onDone)
+            Celebration("Hoi ${greet.orEmpty()}!", "Fijn dat je er bent. Ik laat je even rondkijken.", durationMs = 3600, onDone = onDone)
         }
     }
 }

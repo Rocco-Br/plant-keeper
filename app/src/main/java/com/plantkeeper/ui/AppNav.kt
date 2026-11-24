@@ -41,6 +41,8 @@ object Routes {
     const val REMINDERS = "reminders"
     const val BACKUP = "backup"
     const val WELCOME = "welcome"
+    const val TOUR = "tour?first={first}"
+    fun tour(first: Boolean = false) = "tour?first=$first"
     fun seed(id: String) = "seed/$id"
     fun seedForm(id: String? = null, mother: String? = null) = "seedForm?id=${id.orEmpty()}&mother=${mother.orEmpty()}"
     fun plant(id: String) = "plant/$id"
@@ -96,9 +98,16 @@ fun AppNav(showWelcome: Boolean = false) {
             popExitTransition = Motion.navPopExit,
         ) {
             composable(Routes.WELCOME, exitTransition = { Motion.welcomeExit }) {
-                WelcomeScreen(onDone = { nav.navigate(Routes.HOME) { popUpTo(Routes.WELCOME) { inclusive = true } } })
+                WelcomeScreen(onDone = { nav.navigate(Routes.tour(first = true)) { popUpTo(Routes.WELCOME) { inclusive = true } } })
             }
-            composable(Routes.HOME, enterTransition = { if (initialState.destination.route == Routes.WELCOME) Motion.welcomeToHome else Motion.navEnter(this) }) {
+            composable(Routes.TOUR, enterTransition = { if (initialState.destination.route == Routes.WELCOME) Motion.welcomeToHome else Motion.navEnter(this) }) {
+                // De eerste keer gaat de rondleiding door naar het startscherm, vanuit Meer gewoon terug.
+                val first = it.arg("first") == "true"
+                TourScreen(onDone = {
+                    if (first) nav.navigate(Routes.HOME) { popUpTo(Routes.TOUR) { inclusive = true } } else nav.popBackStack()
+                })
+            }
+            composable(Routes.HOME, enterTransition = { if (initialState.destination.route == Routes.TOUR) Motion.welcomeToHome else Motion.navEnter(this) }) {
                 HomeScreen(nav)
             }
             composable(Routes.SEEDS) { SeedListScreen(nav) }

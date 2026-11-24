@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.FolderZip
 import androidx.compose.material.icons.outlined.Notifications
@@ -110,7 +111,11 @@ fun MoreScreen(nav: NavController) {
                 Icons.Outlined.FolderZip, "Backup", lastExport?.let { "Laatste export: ${fmtTimestamp(it)}" } ?: "Nog nooit geëxporteerd",
                 pk.indoorContainer to pk.onIndoorContainer, 2,
             ) { nav.navigate(Routes.BACKUP) }
-            Row(Modifier.appear(3).padding(horizontal = Space.l + Space.xs, vertical = Space.l), verticalAlignment = Alignment.CenterVertically) {
+            MenuRow(
+                Icons.Outlined.Explore, "Rondleiding", "Bekijk nog eens hoe alles werkt",
+                MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer, 3,
+            ) { nav.navigate(Routes.tour()) }
+            Row(Modifier.appear(4).padding(horizontal = Space.l + Space.xs, vertical = Space.l), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Lock, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(Space.s))
                 Hint("Plant Keeper 0.1. Alles staat alleen op dit toestel. Geen account, geen cloud.")
