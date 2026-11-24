@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Achtergrond van het app-icoon: bosgroen verloop, gelijk aan de kop van het startscherm. -->
+<!-- Achtergrond van het app-icoon: nachtgroen verloop, gelijk aan de kop van het startscherm. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp" android:height="108dp"
@@ -8,7 +8,7 @@
         <aapt:attr name="android:fillColor">
             <gradient android:type="linear"
                 android:startX="0" android:startY="0" android:endX="108" android:endY="108"
-                android:startColor="#FF1F4D33" android:centerColor="#FF2C6A48" android:endColor="#FF4F8A5E" />
+                android:startColor="#FF123222" android:endColor="#FF2C6A48" />
         </aapt:attr>
     </path>
 </vector>

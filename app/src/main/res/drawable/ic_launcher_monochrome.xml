@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Monochrome laag voor thema-iconen (Android 13+): dezelfde vorm in één kleur. -->
+<!-- Monochrome laag voor thema-iconen (Android 13+): potje en plantje in één kleur. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:pathData="M54,70 C54,62 54,56 54,48"
-        android:strokeColor="#FF000000" android:strokeWidth="4.5" android:strokeLineCap="round" />
-    <path android:pathData="M54,56 C46,57 37,52 35,40 C46,39 54,45 54,56 Z" android:fillColor="#FF000000" />
-    <path android:pathData="M54,50 C55,40 63,32 75,32 C75,44 67,51 54,50 Z" android:fillColor="#FF000000" />
-    <path android:pathData="M39,73 C39,66 46,63 54,63 C62,63 69,66 69,73 C69,79 62,82 54,82 C46,82 39,79 39,73 Z" android:fillColor="#FF000000" />
+    <path android:pathData="M54,64 C54,58 54,52 54,44" android:strokeColor="#FF000000" android:strokeWidth="4" android:strokeLineCap="round" />
+    <path android:pathData="M54,52 C48,54 40,51 39,43 C46,41 53,44 54,52 Z" android:fillColor="#FF000000" />
+    <path android:pathData="M54,47 C55,39 62,34 70,35 C70,43 63,48 54,47 Z" android:fillColor="#FF000000" />
+    <path android:pathData="M41,66 H67 L64,84 Q63.5,86 61,86 H47 Q44.5,86 44,84 Z" android:fillColor="#FF000000" />
+    <path android:pathData="M41,60 H67 Q70,60 70,63 V65 Q70,68 67,68 H41 Q38,68 38,65 V63 Q38,60 41,60 Z" android:fillColor="#FF000000" />
 </vector>

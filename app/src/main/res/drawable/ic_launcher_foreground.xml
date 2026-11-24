@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kiemend zaadje: terracotta zaad, crèmekleurige steel en twee blaadjes. Blijft binnen de veilige zone. -->
+<!-- Mascotte: terracotta potje met gezichtje en een crème/lichtgroen plantje, met gloed en sterretjes. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:name="stem" android:pathData="M54,70 C54,62 54,56 54,48"
-        android:strokeColor="#FFF3F8EC" android:strokeWidth="4.5" android:strokeLineCap="round" />
-    <path android:name="leafLeft" android:pathData="M54,56 C46,57 37,52 35,40 C46,39 54,45 54,56 Z"
-        android:fillColor="#FFF3F8EC" />
-    <path android:name="leafRight" android:pathData="M54,50 C55,40 63,32 75,32 C75,44 67,51 54,50 Z"
-        android:fillColor="#FFB5D98A" />
-    <path android:name="seed" android:pathData="M39,73 C39,66 46,63 54,63 C62,63 69,66 69,73 C69,79 62,82 54,82 C46,82 39,79 39,73 Z"
-        android:fillColor="#FFE58A5F" />
-    <path android:name="seedShine" android:pathData="M45,70 C47,67 50,66 53,66"
-        android:strokeColor="#66FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" />
+    <path android:pathData="M27,54 a27,27 0 1,0 54,0 a27,27 0 1,0 -54,0" android:fillColor="#21B5D98A" />
+    <path android:pathData="M30.6,34 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0" android:fillColor="#FFF3F8EC" />
+    <path android:pathData="M74.9,29 a1.1,1.1 0 1,0 2.2,0 a1.1,1.1 0 1,0 -2.2,0" android:fillColor="#FFF3F8EC" />
+    <path android:pathData="M78.7,52 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0" android:fillColor="#FFF3F8EC" />
+    <path android:pathData="M54,64 C54,58 54,52 54,44" android:strokeColor="#FFF3F8EC" android:strokeWidth="4" android:strokeLineCap="round" />
+    <path android:pathData="M54,52 C48,54 40,51 39,43 C46,41 53,44 54,52 Z" android:fillColor="#FFF3F8EC" />
+    <path android:pathData="M54,47 C55,39 62,34 70,35 C70,43 63,48 54,47 Z" android:fillColor="#FFB5D98A" />
+    <path android:pathData="M41,66 H67 L64,84 Q63.5,86 61,86 H47 Q44.5,86 44,84 Z" android:fillColor="#FFE07B4C" />
+    <path android:pathData="M41,60 H67 Q70,60 70,63 V65 Q70,68 67,68 H41 Q38,68 38,65 V63 Q38,60 41,60 Z" android:fillColor="#FFC9653A" />
+    <path android:pathData="M47,71 L48.3,80" android:strokeColor="#59FFFFFF" android:strokeWidth="2" android:strokeLineCap="round" />
+    <path android:pathData="M44.4,79 a2.6,1.5 0 1,0 5.2,0 a2.6,1.5 0 1,0 -5.2,0" android:fillColor="#BFFFBEAA" />
+    <path android:pathData="M58.4,79 a2.6,1.5 0 1,0 5.2,0 a2.6,1.5 0 1,0 -5.2,0" android:fillColor="#BFFFBEAA" />
+    <path android:pathData="M48.3,75 a1.7,2.3 0 1,0 3.4,0 a1.7,2.3 0 1,0 -3.4,0" android:fillColor="#FF4A2412" />
+    <path android:pathData="M56.3,75 a1.7,2.3 0 1,0 3.4,0 a1.7,2.3 0 1,0 -3.4,0" android:fillColor="#FF4A2412" />
+    <path android:pathData="M51.5,80 C53,82 55,82 56.5,80" android:strokeColor="#FF4A2412" android:strokeWidth="1.4" android:strokeLineCap="round" />
 </vector>

@@ -2,6 +2,12 @@ package com.plantkeeper.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -99,7 +105,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Spacer(Modifier.height(12.dp))
-            GrowingSprout(Modifier.size(190.dp).align(Alignment.CenterHorizontally))
+            PotMascot(Modifier.size(200.dp).align(Alignment.CenterHorizontally))
             AnimatedVisibility(step >= 1, enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { it / 3 }) {
                 Column {
                     Eyebrow("Welkom bij", c.onHero.copy(alpha = 0.8f))
@@ -141,45 +147,82 @@ fun WelcomeScreen(onDone: () -> Unit) {
     }
 }
 
-private val SEED = PathParser().parsePathString("M39,73 C39,66 46,63 54,63 C62,63 69,66 69,73 C69,79 62,82 54,82 C46,82 39,79 39,73 Z").toPath()
-private val LEAF_LEFT = PathParser().parsePathString("M54,56 C46,57 37,52 35,40 C46,39 54,45 54,56 Z").toPath()
-private val LEAF_RIGHT = PathParser().parsePathString("M54,50 C55,40 63,32 75,32 C75,44 67,51 54,50 Z").toPath()
+private fun path(d: String) = PathParser().parsePathString(d).toPath()
+private val POT_BODY = path("M41,66 H67 L64,84 Q63.5,86 61,86 H47 Q44.5,86 44,84 Z")
+private val LEAF_LEFT = path("M54,52 C48,54 40,51 39,43 C46,41 53,44 54,52 Z")
+private val LEAF_RIGHT = path("M54,47 C55,39 62,34 70,35 C70,43 63,48 54,47 Z")
+private val SMILE = path("M51.5,80 C53,82 55,82 56.5,80")
+private val DROP = path("M54,24 C57,29 60,32 60,35 C60,38.5 57.3,41 54,41 C50.7,41 48,38.5 48,35 C48,32 51,29 54,24 Z")
 
 /**
- * Het app-icoon, maar dan levend: het zaadje veert op, de steel groeit, de blaadjes ontvouwen
- * en daarna wiegt het plantje zachtjes heen en weer. Tekent in de 108-eenheden van het icoon.
+ * De mascotte van het app-icoon, maar dan levend: een druppel valt in het potje, het potje veert in,
+ * het plantje schiet omhoog en daarna wiegt het zachtjes en knippert het potje af en toe met zijn oogjes.
+ * Tekent in de 108-eenheden van het icoon.
  */
 @Composable
-fun GrowingSprout(modifier: Modifier = Modifier) {
-    val seed = remember { Animatable(0f) }
-    val stem = remember { Animatable(0f) }
-    val left = remember { Animatable(0f) }
-    val right = remember { Animatable(0f) }
+fun PotMascot(modifier: Modifier = Modifier) {
+    val drop = remember { Animatable(0f) }
+    val squash = remember { Animatable(0f) }
+    val grow = remember { Animatable(0f) }
+    val glow = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        launch { seed.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 220f)) }
-        delay(280)
-        launch { stem.animateTo(1f, tween(420, easing = FastOutSlowInEasing)) }
-        delay(360)
-        launch { left.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 200f)) }
+        launch { drop.animateTo(1f, tween(460, easing = FastOutLinearInEasing)) }
+        delay(400)
+        launch { squash.animateTo(1f, tween(380)) }
         delay(150)
-        right.animateTo(1f, spring(dampingRatio = 0.42f, stiffness = 200f))
+        launch { grow.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = 230f)) }
+        delay(250)
+        glow.animateTo(1f, tween(500))
     }
-    val sway by rememberInfiniteTransition(label = "wiegen").animateFloat(
+    val loop = rememberInfiniteTransition(label = "mascotte")
+    val sway by loop.animateFloat(
         initialValue = -4f, targetValue = 4f,
         animationSpec = infiniteRepeatable(tween(2400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "wiegen",
     )
+    val blink by loop.animateFloat(
+        initialValue = 1f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(keyframes {
+            durationMillis = 3800
+            1f at 3400
+            0.1f at 3500
+            1f at 3600
+        }),
+        label = "knipperen",
+    )
     val cream = Color(0xFFF3F8EC)
+    val ink = Color(0xFF4A2412)
     Canvas(modifier) {
         val unit = size.minDimension / 108f
         withTransform({ scale(unit, unit, Offset.Zero) }) {
-            drawCircle(Color.White.copy(alpha = 0.10f), radius = 46f * seed.value, center = Offset(54f, 56f))
-            rotate(sway * right.value, pivot = Offset(54f, 70f)) {
-                drawLine(cream, Offset(54f, 70f), Offset(54f, 70f - 22f * stem.value), strokeWidth = 4.5f, cap = StrokeCap.Round)
-                scale(left.value, pivot = Offset(54f, 56f)) { drawPath(LEAF_LEFT, cream) }
-                scale(right.value, pivot = Offset(54f, 50f)) { drawPath(LEAF_RIGHT, Color(0xFFB5D98A)) }
+            drawCircle(Color(0xFFB5D98A).copy(alpha = 0.13f * glow.value), radius = 27f, center = Offset(54f, 54f))
+            // Plantje: groeit vanuit de aarde in het potje, wiegt daarna.
+            scale(1f, grow.value, pivot = Offset(54f, 64f)) {
+                rotate(sway * grow.value.coerceIn(0f, 1f), pivot = Offset(54f, 64f)) {
+                    drawLine(cream, Offset(54f, 64f), Offset(54f, 44f), strokeWidth = 4f, cap = StrokeCap.Round)
+                    drawPath(LEAF_LEFT, cream)
+                    drawPath(LEAF_RIGHT, Color(0xFFB5D98A))
+                }
             }
-            scale(seed.value, pivot = Offset(54f, 82f)) { drawPath(SEED, Color(0xFFE58A5F)) }
+            // Potje met gezichtje; veert in als de druppel landt.
+            val bump = kotlin.math.sin(Math.PI * squash.value).toFloat()
+            scale(1f + 0.09f * bump, 1f - 0.14f * bump, pivot = Offset(54f, 86f)) {
+                drawPath(POT_BODY, Color(0xFFE07B4C))
+                drawRoundRect(Color(0xFFC9653A), Offset(38f, 60f), Size(32f, 8f), CornerRadius(3f))
+                drawLine(Color.White.copy(alpha = 0.35f), Offset(47f, 71f), Offset(48.3f, 80f), strokeWidth = 2f, cap = StrokeCap.Round)
+                drawOval(Color(0xBFFFBEAA), Offset(44.4f, 77.5f), Size(5.2f, 3f))
+                drawOval(Color(0xBFFFBEAA), Offset(58.4f, 77.5f), Size(5.2f, 3f))
+                scale(1f, blink, pivot = Offset(54f, 75f)) {
+                    drawOval(ink, Offset(48.3f, 72.7f), Size(3.4f, 4.6f))
+                    drawOval(ink, Offset(56.3f, 72.7f), Size(3.4f, 4.6f))
+                }
+                drawPath(SMILE, ink, style = Stroke(width = 1.4f, cap = StrokeCap.Round))
+            }
+            // Druppel valt van boven in het potje en verdwijnt bij de rand.
+            if (drop.value < 1f) {
+                val fade = if (drop.value < 0.8f) 1f else (1f - drop.value) / 0.2f
+                translate(top = 22f * drop.value) { drawPath(DROP, Color(0xFF5AA9E0).copy(alpha = fade)) }
+            }
         }
     }
 }

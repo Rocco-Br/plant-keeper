@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#FF1F4D33</color>
+    <color name="splash_background">#FF16392A</color>
 
     <!-- Opstartscherm. Onder Android 12 toont het het icoon stil; vanaf 12 groeit het (values-v31). -->
     <style name="Theme.PlantKeeper.Splash" parent="Theme.SplashScreen">
