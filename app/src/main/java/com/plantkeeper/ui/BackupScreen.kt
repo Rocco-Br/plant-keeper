@@ -123,16 +123,13 @@ fun BackupScreen(nav: NavController) {
         ) {
             FormError(error)
             message?.let { Note(Icons.Outlined.FolderZip, it) }
-            SectionCard("Exporteren", Icons.Outlined.Download) {
+            SectionCard("Exporteren", Icons.Outlined.Download, tint = pk.outdoor) {
                 Text("Eén ZIP met al je zaden, planten en foto's. Bewaar hem op een veilige plek, het bestand is niet versleuteld.")
                 Hint("${count(seeds.size, "zaad", "zaden")} · ${count(plants.size, "plant", "planten")} · ${count(photoCount, "foto", "foto's")}")
-                Button(
-                    onClick = { exportLauncher.launch("plant-keeper-${LocalDate.now()}.zip") },
-                    enabled = !busy, modifier = Modifier.fillMaxWidth(),
-                ) { Text("Exporteer ZIP") }
+                BigButton("Exporteer ZIP", Icons.Outlined.Download, { exportLauncher.launch("plant-keeper-${LocalDate.now()}.zip") }, enabled = !busy)
                 lastExport?.let { Hint("Laatste export: ${fmtTimestamp(it)}") }
             }
-            SectionCard("Importeren", Icons.Outlined.Upload) {
+            SectionCard("Importeren", Icons.Outlined.Upload, tint = pk.indoor) {
                 Text("Kies een eerder geëxporteerde ZIP en bepaal wat er met je huidige data gebeurt.")
                 FilledTonalButton(onClick = { importLauncher.launch(arrayOf("application/zip", "application/octet-stream")) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Outlined.UploadFile, null)
@@ -147,10 +144,7 @@ fun BackupScreen(nav: NavController) {
                     if (replace) "Al je huidige zaden, planten en foto's worden gewist en vervangen door de inhoud van de ZIP."
                     else "Items die al bestaan worden bijgewerkt, nieuwe items worden toegevoegd. Er gaat niets verloren.",
                 )
-                Button(
-                    onClick = { if (replace) confirmReplace = true else doImport() },
-                    enabled = zip != null && !busy, modifier = Modifier.fillMaxWidth(),
-                ) { Text("Importeer") }
+                BigButton("Importeer", Icons.Outlined.Upload, { if (replace) confirmReplace = true else doImport() }, enabled = zip != null && !busy)
             }
             Note(Icons.Outlined.Warning, "Verwijder je de app zonder te exporteren, dan ben je al je gegevens kwijt. Er is geen cloud die ze bewaart.", warn = true)
         }

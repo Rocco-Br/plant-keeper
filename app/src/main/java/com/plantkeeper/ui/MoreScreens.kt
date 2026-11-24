@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -96,12 +97,14 @@ fun MoreScreen(nav: NavController) {
 
     PkScaffold(title = "Meer", eyebrow = "Instellingen") { _ ->
         Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            MenuRow(Icons.Filled.Notifications, "Herinneringen", "${seeds.count { it.reminder }} van ${seeds.size} zaden staan aan") {
-                nav.navigate(Routes.REMINDERS)
-            }
-            MenuRow(Icons.Filled.FolderZip, "Backup", lastExport?.let { "Laatste export: ${fmtTimestamp(it)}" } ?: "Nog nooit geëxporteerd") {
-                nav.navigate(Routes.BACKUP)
-            }
+            MenuRow(
+                Icons.Filled.Notifications, "Herinneringen", "${seeds.count { it.reminder }} van ${seeds.size} zaden staan aan",
+                MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer,
+            ) { nav.navigate(Routes.REMINDERS) }
+            MenuRow(
+                Icons.Filled.FolderZip, "Backup", lastExport?.let { "Laatste export: ${fmtTimestamp(it)}" } ?: "Nog nooit geëxporteerd",
+                pk.indoorContainer, pk.onIndoorContainer,
+            ) { nav.navigate(Routes.BACKUP) }
             Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.Lock, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
@@ -114,18 +117,16 @@ fun MoreScreen(nav: NavController) {
 fun fmtTimestamp(millis: Long): String = SimpleDateFormat("d MMM yyyy, HH:mm", Locale("nl")).format(Date(millis))
 
 @Composable
-private fun MenuRow(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+private fun MenuRow(icon: ImageVector, title: String, subtitle: String, bg: Color, fg: Color, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .clickable(onClick = onClick).padding(14.dp),
+        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            .clickable(onClick = onClick).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-        }
-        Spacer(Modifier.width(14.dp))
+        IconBlob(icon, bg, fg, 52.dp)
+        Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.titleLarge)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Chevron()
@@ -136,9 +137,9 @@ private fun MenuRow(icon: ImageVector, title: String, subtitle: String, onClick:
 fun Note(icon: ImageVector, text: String, warn: Boolean = false, action: @Composable () -> Unit = {}) {
     val bg = if (warn) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer
     val fg = if (warn) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(bg).padding(14.dp)) {
+    Row(Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(bg).padding(16.dp)) {
         Icon(icon, null, tint = fg)
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text, color = fg, style = MaterialTheme.typography.bodyMedium)
             action()

@@ -1,16 +1,14 @@
 package com.plantkeeper.ui
 
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +16,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.TextField
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -100,9 +101,7 @@ fun SeedListScreen(nav: NavController) {
     PkScaffold(
         title = "Zaden",
         eyebrow = "${count(seeds.size, "soort", "soorten")} in voorraad",
-        fab = {
-            ExtendedFloatingActionButton(onClick = { nav.navigate(Routes.seedForm()) }, icon = { Icon(Icons.Outlined.Add, null) }, text = { Text("Zaad") })
-        },
+        fab = { AddFab("Zaad") { nav.navigate(Routes.seedForm()) } },
     ) { padding ->
         Column {
             SearchField(query) { query = it }
@@ -129,7 +128,7 @@ fun SeedListScreen(nav: NavController) {
 
 @Composable
 fun SearchField(query: String, onChange: (String) -> Unit) {
-    OutlinedTextField(
+    TextField(
         value = query,
         onValueChange = onChange,
         placeholder = { Text("Zoek op naam") },
@@ -137,8 +136,45 @@ fun SearchField(query: String, onChange: (String) -> Unit) {
         trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { onChange("") }) { Icon(Icons.Outlined.Close, "Wissen") } },
         singleLine = true,
         shape = CircleShape,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+        colors = pkFieldColors(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
     )
+}
+
+/** Grote toevoegknop in bladvorm. */
+@Composable
+fun AddFab(label: String, onClick: () -> Unit) {
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        icon = { Icon(Icons.Outlined.Add, null) },
+        text = { Text(label, style = MaterialTheme.typography.titleMedium) },
+        shape = leaf(26.dp, 10.dp),
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+    )
+}
+
+/** Brede hoofdknop, hoog en rond. */
+@Composable
+fun BigButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector?, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    Button(
+        onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth().height(60.dp), shape = leaf(26.dp, 10.dp),
+    ) {
+        if (icon != null) {
+            Icon(icon, null)
+            Spacer(Modifier.width(10.dp))
+        }
+        Text(text, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+@Composable
+fun DeleteButton(text: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+        Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error)
+        Spacer(Modifier.width(8.dp))
+        Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
+    }
 }
 
 @Composable
@@ -157,73 +193,55 @@ fun SeedDetailScreen(nav: NavController, id: String) {
     val today = LocalDate.now()
     val s = seed
 
-    PkScaffold(
-        title = s?.name ?: "",
-        onBack = { nav.popBackStack() },
-        actions = { IconButton(onClick = { nav.navigate(Routes.seedForm(id)) }) { Icon(Icons.Outlined.Edit, "Bewerken") } },
-    ) { padding ->
-        if (s == null) return@PkScaffold
-        Column(Modifier.padding(padding).verticalScroll(rememberScrollState())) {
-            PhotoHero(s.name, s.photo, Icons.Outlined.Grain)
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Column {
-                    Eyebrow(s.kind.ifBlank { "Zaad" })
-                    Text(s.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+    if (s == null) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+    } else {
+        DetailScaffold(s.name, s.photo, Icons.Outlined.Grain, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(Routes.seedForm(id)) }) {
+            DetailTitle(s.kind.ifBlank { "Zaad" }, s.name)
+            if (s.isExpired(today.year)) ExpiredBadge("Verlopen sinds ${s.expiryYear}")
+            val expired = s.isExpired(today.year)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Fact(
+                    Icons.Outlined.Scale, "Voorraad", qtyText(s.quantity, s.unit), Modifier.weight(1f),
+                    MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Fact(
+                    Icons.Outlined.HourglassBottom, "Houdbaar", s.expiryYear?.let { "t/m $it" } ?: "Onbekend", Modifier.weight(1f),
+                    if (expired) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                    if (expired) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Fact(Icons.Outlined.Inventory2, "Bewaarplek", s.storage.ifBlank { "Onbekend" }, Modifier.weight(1f), pk.indoorContainer, pk.onIndoorContainer)
+            }
+            MotherLink(nav, s)
+            SectionCard("Zaaitijden", Icons.Outlined.CalendarMonth) {
+                SowingGrid(s.indoor, s.outdoor, today.monthValue)
+            }
+            ReminderCard(s, today)
+            BigButton("Zaaien", Icons.Outlined.LocalFlorist, { nav.navigate(Routes.plantForm(seed = s.id)) })
+            SectionCard("Gezaaid (${plants.size})", Icons.Outlined.LocalFlorist) {
+                if (plants.isEmpty()) {
+                    Text("Nog niet gezaaid. Tik op Zaaien om de eerste zaai vast te leggen.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                if (s.isExpired(today.year)) ExpiredBadge("Verlopen sinds ${s.expiryYear}")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Fact(Icons.Outlined.Scale, "Voorraad", qtyText(s.quantity, s.unit), Modifier.weight(1f))
-                    Fact(Icons.Outlined.HourglassBottom, "Houdbaar", s.expiryYear?.let { "t/m $it" } ?: "Onbekend", Modifier.weight(1f))
-                    Fact(Icons.Outlined.Inventory2, "Bewaarplek", s.storage.ifBlank { "Onbekend" }, Modifier.weight(1f))
-                }
-                MotherLink(nav, s)
-                SectionCard("Zaaitijden", Icons.Outlined.CalendarMonth) {
-                    SowingGrid(s.indoor, s.outdoor, today.monthValue)
-                    Text(
-                        "Binnen ${periodText(s.indoor)} · Buiten ${periodText(s.outdoor)}",
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                ReminderCard(s, today)
-                Button(onClick = { nav.navigate(Routes.plantForm(seed = s.id)) }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.LocalFlorist, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Zaaien")
-                }
-                SectionCard("Gezaaid (${plants.size})", Icons.Outlined.LocalFlorist) {
-                    if (plants.isEmpty()) {
-                        Text("Nog niet gezaaid. Tik op Zaaien om de eerste zaai vast te leggen.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    plants.forEach { p ->
-                        Row(
-                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainer)
-                                .clickable { nav.navigate(Routes.plant(p.id)) }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(fmtDate(p.sowDate), fontWeight = FontWeight.SemiBold)
-                                Text(p.location.ifBlank { "Geen locatie" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            StatusPill(p.status)
+                plants.forEach { p ->
+                    Row(
+                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                            .clickable { nav.navigate(Routes.plant(p.id)) }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(fmtDate(p.sowDate), style = MaterialTheme.typography.titleSmall)
+                            Text(p.location.ifBlank { "Geen locatie" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                        StatusPill(p.status)
                     }
-                }
-                if (s.notes.isNotBlank()) {
-                    SectionCard("Notities", Icons.Outlined.StickyNote2) { Text(s.notes) }
-                }
-                OutlinedButton(
-                    onClick = { confirmDelete = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                ) {
-                    Icon(Icons.Outlined.Delete, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Zaad verwijderen")
                 }
             }
+            if (s.notes.isNotBlank()) {
+                SectionCard("Notities", Icons.Outlined.StickyNote2) { Text(s.notes) }
+            }
+            DeleteButton("Zaad verwijderen") { confirmDelete = true }
         }
     }
 
@@ -300,40 +318,62 @@ private fun ReminderCard(seed: Seed, today: LocalDate) {
     }
 }
 
-/** Jaarbalk: 12 maanden, binnen in bosgroen en buiten in saliegroen, de huidige maand omlijnd. */
+/** Jaarbalk: 12 maanden, binnen in terracotta en buiten in bladgroen, de huidige maand met een zonnetje erboven. */
 @Composable
 fun SowingGrid(indoor: MonthRange?, outdoor: MonthRange?, currentMonth: Int) {
-    val labelWidth = 72.dp
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row {
-            Spacer(Modifier.width(labelWidth))
             MONTH_LETTERS.forEachIndexed { i, l ->
-                Text(
-                    l, Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall,
-                    fontWeight = if (i + 1 == currentMonth) FontWeight.Bold else FontWeight.Normal,
-                    color = if (i + 1 == currentMonth) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                val now = i + 1 == currentMonth
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(
+                        l,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (now) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape)
+                            .background(if (now) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            .wrapContentHeight(),
+                    )
+                }
             }
         }
-        GridRow("Binnen", Icons.Outlined.House, indoor, MaterialTheme.colorScheme.primary, currentMonth, labelWidth)
-        GridRow("Buiten", Icons.Outlined.Yard, outdoor, MaterialTheme.colorScheme.secondary, currentMonth, labelWidth)
+        GridRow(indoor, pk.indoor, currentMonth)
+        GridRow(outdoor, pk.outdoor, currentMonth)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Pill("Binnen ${periodText(indoor)}", pk.indoorContainer, pk.onIndoorContainer, Icons.Outlined.House)
+            Pill("Buiten ${periodText(outdoor)}", pk.outdoorContainer, pk.onOutdoorContainer, Icons.Outlined.Yard)
+        }
     }
 }
 
+/** Eén rij van de jaarbalk; aaneengesloten maanden vormen één doorlopende pil. */
 @Composable
-private fun GridRow(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, range: MonthRange?, on: Color, currentMonth: Int, labelWidth: androidx.compose.ui.unit.Dp) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.width(labelWidth), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(4.dp))
-            Text(label, style = MaterialTheme.typography.labelMedium)
-        }
+private fun GridRow(range: MonthRange?, on: Color, currentMonth: Int) {
+    Row(Modifier.height(26.dp)) {
         for (m in 1..12) {
             val filled = range?.contains(m) == true
+            val prev = range?.contains(if (m == 1) 12 else m - 1) == true && m != 1
+            val next = range?.contains(if (m == 12) 1 else m + 1) == true && m != 12
+            val shape = RoundedCornerShape(
+                topStart = if (prev) 0.dp else 13.dp, bottomStart = if (prev) 0.dp else 13.dp,
+                topEnd = if (next) 0.dp else 13.dp, bottomEnd = if (next) 0.dp else 13.dp,
+            )
             Box(
-                Modifier.weight(1f).padding(horizontal = 1.5.dp).height(18.dp).clip(RoundedCornerShape(4.dp))
-                    .background(if (filled) on else MaterialTheme.colorScheme.surfaceContainerHigh)
-                    .then(if (m == currentMonth) Modifier.border(1.5.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(4.dp)) else Modifier),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(start = if (filled && prev) 0.dp else 1.5.dp, end = if (filled && next) 0.dp else 1.5.dp)
+                    .clip(if (filled) shape else CircleShape)
+                    .background(
+                        when {
+                            filled -> on
+                            m == currentMonth -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                            else -> MaterialTheme.colorScheme.surfaceContainerHigh
+                        },
+                    ),
             )
         }
     }
@@ -422,44 +462,58 @@ fun SeedFormScreen(nav: NavController, id: String?, motherId: String?) {
         title = if (id != null) "Zaad bewerken" else if (motherId != null) "Zaad winnen" else "Nieuw zaad",
         onBack = { nav.popBackStack() },
         backIcon = Icons.Outlined.Close,
-        actions = { Button(onClick = ::save, enabled = loaded && !saving, modifier = Modifier.padding(end = 8.dp)) { Text("Opslaan") } },
+        actions = { SaveButton(enabled = loaded && !saving, onClick = ::save) },
     ) { padding ->
         if (!loaded) return@PkScaffold
         Column(
-            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             FormError(error)
             PhotoPickerField(name, photo, picked) { picked = it }
             if (mother != null) {
-                val motherName by remember(mother) { dao.plant(mother!!) }.collectAsState(initial = null)
-                motherName?.let { Badge("Gekoppeld aan moederplant ${it.name}", Icons.Outlined.Recycling, warn = false) }
-                DateField("Zaad geoogst op", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
+                FormSection("Zaadgewinning", Icons.Outlined.Recycling) {
+                    val motherName by remember(mother) { dao.plant(mother!!) }.collectAsState(initial = null)
+                    motherName?.let { Hint("Gekoppeld aan moederplant ${it.name}") }
+                    DateField("Zaad geoogst op", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
+                }
             }
-            Field("Naam", name, { name = it }, placeholder = "Bijvoorbeeld Tomaat ‘Moneymaker’")
-            Field("Soort", kind, { kind = it }, placeholder = "Tomaat, kruid, bol...")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Field("Hoeveelheid", quantity, { quantity = it }, Modifier.weight(1f), KeyboardType.Decimal)
-                DropdownField("Eenheid", QuantityUnit.entries, unit, { it.plural }, { unit = it }, Modifier.weight(1f))
+            FormSection("Over dit zaad", Icons.Outlined.Grain) {
+                Field("Naam", name, { name = it }, placeholder = "Bijvoorbeeld Tomaat ‘Moneymaker’")
+                Field("Soort", kind, { kind = it }, placeholder = "Tomaat, kruid, bol...")
             }
-            Hint("Een schatting is genoeg. De voorraad gaat niet automatisch omlaag bij zaaien.")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Field("Houdbaar tot (jaar)", expiry, { expiry = it }, Modifier.weight(1f), KeyboardType.Number)
-                Field("Bewaarplek", storage, { storage = it }, Modifier.weight(1f), placeholder = "Bus 3, kast")
+            FormSection("Voorraad", Icons.Outlined.Scale) {
+                Field("Hoeveelheid", quantity, { quantity = it }, keyboard = KeyboardType.Decimal)
+                ChoiceChips(QuantityUnit.entries, unit, { it.plural }, { unit = it })
+                Hint("Een schatting is genoeg. De voorraad gaat niet automatisch omlaag bij zaaien.")
             }
-            GroupLabel("Zaaitijd binnen", Icons.Outlined.House)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MonthField("Van", inStart, { inStart = it }, Modifier.weight(1f))
-                MonthField("Tot en met", inEnd, { inEnd = it }, Modifier.weight(1f))
+            FormSection("Bewaren", Icons.Outlined.Inventory2, tint = pk.indoor) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Field("Houdbaar tot", expiry, { expiry = it }, Modifier.weight(1f), KeyboardType.Number, placeholder = "2027")
+                    Field("Bewaarplek", storage, { storage = it }, Modifier.weight(1.4f), placeholder = "Bus 3, kast")
+                }
             }
-            GroupLabel("Zaaitijd buiten", Icons.Outlined.Yard)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MonthField("Van", outStart, { outStart = it }, Modifier.weight(1f))
-                MonthField("Tot en met", outEnd, { outEnd = it }, Modifier.weight(1f))
+            FormSection("Zaaitijden", Icons.Outlined.CalendarMonth) {
+                MonthRangePicker("Binnen", Icons.Outlined.House, pk.indoor, pk.onIndoor, pk.indoorContainer, inStart, inEnd) { s, e -> inStart = s; inEnd = e }
+                Spacer(Modifier.height(4.dp))
+                MonthRangePicker("Buiten", Icons.Outlined.Yard, pk.outdoor, pk.onOutdoor, pk.outdoorContainer, outStart, outEnd) { s, e -> outStart = s; outEnd = e }
+                Hint("Een periode mag over de jaarwissel lopen: tik eerst november, dan maart.")
             }
-            Hint("Een periode mag over de jaarwissel lopen, bijvoorbeeld november t/m maart.")
-            Field("Notities", notes, { notes = it }, singleLine = false)
+            FormSection("Notities", Icons.Outlined.StickyNote2) {
+                Field("Notities", notes, { notes = it }, singleLine = false)
+            }
+            Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+/** Opslaan-knop rechtsboven in een formulier. */
+@Composable
+fun SaveButton(enabled: Boolean, onClick: () -> Unit) {
+    Button(onClick = onClick, enabled = enabled, modifier = Modifier.padding(end = 8.dp), shape = leaf(18.dp, 6.dp)) {
+        Icon(Icons.Outlined.Check, null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("Opslaan")
     }
 }
 
@@ -473,7 +527,7 @@ fun Field(
     placeholder: String? = null,
     singleLine: Boolean = true,
 ) {
-    OutlinedTextField(
+    TextField(
         value = value,
         onValueChange = onChange,
         label = { Text(label) },
@@ -481,6 +535,8 @@ fun Field(
         singleLine = singleLine,
         minLines = if (singleLine) 1 else 3,
         keyboardOptions = KeyboardOptions(keyboardType = keyboard),
+        shape = FieldShape,
+        colors = pkFieldColors(),
         modifier = modifier,
     )
 }

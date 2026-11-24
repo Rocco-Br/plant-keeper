@@ -1,17 +1,28 @@
 package com.plantkeeper.ui
 
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -79,16 +90,16 @@ fun PlantListScreen(nav: NavController) {
     PkScaffold(
         title = "Planten",
         eyebrow = "${plants.size} keer gezaaid",
-        fab = {
-            ExtendedFloatingActionButton(onClick = { nav.navigate(Routes.plantForm()) }, icon = { Icon(Icons.Outlined.Add, null) }, text = { Text("Plant") })
-        },
+        fab = { AddFab("Plant") { nav.navigate(Routes.plantForm()) } },
     ) { padding ->
         Column {
             SearchField(query) { query = it }
-            LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                item { FilterChip(filter == null, { filter = null }, { Text("Alle ${plants.size}") }) }
+            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterPill("Alle", plants.size, null, filter == null, MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary) { filter = null }
+                }
                 items(PlantStatus.entries) { s ->
-                    FilterChip(filter == s, { filter = if (filter == s) null else s }, { Text("${s.label.capitalized()} ${counts[s] ?: 0}") })
+                    FilterPill(s.label.capitalized(), counts[s] ?: 0, s.icon, filter == s, statusColors(s)) { filter = if (filter == s) null else s }
                 }
             }
             LazyColumn(contentPadding = padding) {
@@ -112,9 +123,32 @@ fun PlantListScreen(nav: NavController) {
     }
 }
 
+/** Filterknop met de kleur van de status als hij aan staat. */
+@Composable
+private fun FilterPill(label: String, n: Int, icon: androidx.compose.ui.graphics.vector.ImageVector?, on: Boolean, colors: Pair<Color, Color>, onClick: () -> Unit) {
+    val (bg, fg) = colors
+    Row(
+        Modifier
+            .clip(CircleShape)
+            .background(if (on) bg else Color.Transparent)
+            .border(1.5.dp, if (on) Color.Transparent else MaterialTheme.colorScheme.outline, CircleShape)
+            .clickable(role = Role.Checkbox, onClick = onClick)
+            .semantics { selected = on }
+            .padding(horizontal = 14.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            Icon(icon, null, tint = if (on) fg else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(6.dp))
+        }
+        Text(label, style = MaterialTheme.typography.labelLarge, color = if (on) fg else MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(6.dp))
+        Text("$n", style = MaterialTheme.typography.labelMedium, color = (if (on) fg else MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.7f))
+    }
+}
+
 // ---------- Detail ----------
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlantDetailScreen(nav: NavController, id: String) {
     val app = app()
@@ -125,56 +159,40 @@ fun PlantDetailScreen(nav: NavController, id: String) {
     val scope = rememberCoroutineScope()
     var confirmDelete by remember { mutableStateOf(false) }
 
-    PkScaffold(
-        title = p?.name ?: "",
-        onBack = { nav.popBackStack() },
-        actions = { IconButton(onClick = { nav.navigate(Routes.plantForm(id)) }) { Icon(Icons.Outlined.Edit, "Bewerken") } },
-    ) { padding ->
-        if (p == null) return@PkScaffold
-        Column(Modifier.padding(padding).verticalScroll(rememberScrollState())) {
-            PhotoHero(p.name, p.photo, Icons.Outlined.LocalFlorist)
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Column {
-                    Eyebrow(seed?.kind?.ifBlank { null } ?: if (seed != null) "Zaad" else "Losse plant")
-                    Text(p.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                }
-                SectionCard("Status", Icons.Outlined.Timeline) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PlantStatus.entries.forEach { s ->
-                            FilterChip(p.status == s, { scope.launch { dao.setStatus(p.id, s) } }, { Text(s.label) })
-                        }
+    if (p == null) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+    } else {
+        DetailScaffold(p.name, p.photo, Icons.Outlined.LocalFlorist, onBack = { nav.popBackStack() }, onEdit = { nav.navigate(Routes.plantForm(id)) }) {
+            DetailTitle(seed?.kind?.ifBlank { null } ?: if (seed != null) "Zaad" else "Losse plant", p.name)
+            StatusPill(p.status)
+            SectionCard("Hoe staat hij erbij?", p.status.icon, tint = statusColors(p.status).second) {
+                StatusPicker(p.status) { s -> scope.launch { dao.setStatus(p.id, s) } }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Fact(Icons.Outlined.Event, "Gezaaid", fmtDate(p.sowDate), Modifier.weight(1f), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+                Fact(Icons.Outlined.LocationOn, "Locatie", p.location.ifBlank { "Onbekend" }, Modifier.weight(1f), pk.indoorContainer, pk.onIndoorContainer)
+                val s = seed
+                if (s != null) {
+                    Fact(Icons.Outlined.Grain, "Zaad", "Bekijk zaad", Modifier.weight(1f), MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer) {
+                        nav.navigate(Routes.seed(s.id))
                     }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Fact(Icons.Outlined.Event, "Gezaaid", fmtDate(p.sowDate), Modifier.weight(1f))
-                    Fact(Icons.Outlined.LocationOn, "Locatie", p.location.ifBlank { "Onbekend" }, Modifier.weight(1f))
-                    val s = seed
-                    if (s != null) Fact(Icons.Outlined.Grain, "Zaad", "Bekijk zaad", Modifier.weight(1f)) { nav.navigate(Routes.seed(s.id)) }
-                    else Fact(Icons.Outlined.LinkOff, "Zaad", "Geen", Modifier.weight(1f))
-                }
-                SectionCard("Oogst", Icons.Outlined.Agriculture) {
-                    if (p.harvestDate != null || p.harvestText.isNotBlank()) {
-                        if (p.harvestDate != null) Text(fmtDate(p.harvestDate), fontWeight = FontWeight.SemiBold)
-                        if (p.harvestText.isNotBlank()) Text(p.harvestText, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else {
-                        Text("Nog niet geoogst. Vul een oogstdatum in via bewerken.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    HarvestSeedButton(nav, p)
-                }
-                if (p.notes.isNotBlank()) {
-                    SectionCard("Notities", Icons.Outlined.StickyNote2) { Text(p.notes) }
-                }
-                OutlinedButton(
-                    onClick = { confirmDelete = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                ) {
-                    Icon(Icons.Outlined.Delete, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Plant verwijderen")
+                } else {
+                    Fact(Icons.Outlined.LinkOff, "Zaad", "Geen", Modifier.weight(1f))
                 }
             }
+            SectionCard("Oogst", Icons.Outlined.Agriculture, tint = statusColors(PlantStatus.GEOOGST).second) {
+                if (p.harvestDate != null || p.harvestText.isNotBlank()) {
+                    if (p.harvestDate != null) Text(fmtDate(p.harvestDate), style = MaterialTheme.typography.titleMedium)
+                    if (p.harvestText.isNotBlank()) Text(p.harvestText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Text("Nog niet geoogst. Vul een oogstdatum in via bewerken.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                HarvestSeedButton(nav, p)
+            }
+            if (p.notes.isNotBlank()) {
+                SectionCard("Notities", Icons.Outlined.StickyNote2) { Text(p.notes) }
+            }
+            DeleteButton("Plant verwijderen") { confirmDelete = true }
         }
     }
 
@@ -199,10 +217,14 @@ fun PlantDetailScreen(nav: NavController, id: String) {
 /** Zaadgewinning: opent het zaadformulier, gekoppeld aan deze plant als moederplant. */
 @Composable
 private fun HarvestSeedButton(nav: NavController, plant: Plant) {
-    FilledTonalButton(onClick = { nav.navigate(Routes.seedForm(mother = plant.id)) }, modifier = Modifier.fillMaxWidth()) {
+    FilledTonalButton(
+        onClick = { nav.navigate(Routes.seedForm(mother = plant.id)) },
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = leaf(22.dp, 8.dp),
+    ) {
         Icon(Icons.Outlined.Recycling, null)
         Spacer(Modifier.width(8.dp))
-        Text("Maak zaad van deze plant")
+        Text("Maak zaad van deze plant", style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -274,36 +296,44 @@ fun PlantFormScreen(nav: NavController, id: String?, seedId: String?) {
         title = if (id != null) "Plant bewerken" else "Nieuwe plant",
         onBack = { nav.popBackStack() },
         backIcon = Icons.Outlined.Close,
-        actions = { Button(onClick = ::save, enabled = loaded && !saving, modifier = Modifier.padding(end = 8.dp)) { Text("Opslaan") } },
+        actions = { SaveButton(enabled = loaded && !saving, onClick = ::save) },
     ) { padding ->
         if (!loaded) return@PkScaffold
         Column(
-            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            Modifier.padding(padding).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             FormError(error)
-            val current = seeds.firstOrNull { it.id == seed }
-            DropdownField<Seed?>(
-                "Zaad", listOf(null) + seeds, current, { it?.name ?: "Losse plant (zonder zaad)" },
-                { chosen ->
-                    // Naam volgt het zaad zolang je hem niet zelf hebt aangepast.
-                    if (name.isBlank() || name == current?.name) name = chosen?.name.orEmpty()
-                    seed = chosen?.id
-                },
-                Modifier.fillMaxWidth(),
-            )
-            Field("Naam", name, { name = it }, placeholder = "Naam van de plant")
-            Hint("Neemt de naam van het zaad over. De plant houdt deze naam ook als het zaad later verdwijnt.")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DateField("Zaaidatum", sowDate, { sowDate = it }, Modifier.weight(1f))
-                DropdownField("Status", PlantStatus.entries, status, { it.label }, { status = it }, Modifier.weight(1f))
-            }
-            Field("Locatie", location, { location = it }, placeholder = "Vensterbank, bak 2...")
-            GroupLabel("Oogst", Icons.Outlined.Agriculture)
-            DateField("Oogstdatum", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
-            Field("Hoeveelheid en notitie", harvestText, { harvestText = it }, placeholder = "Bijvoorbeeld 2 kg, mooie vruchten")
-            Field("Notities", notes, { notes = it }, singleLine = false)
             PhotoPickerField(name, photo, picked) { picked = it }
+            FormSection("Wat heb je gezaaid?", Icons.Outlined.Grain) {
+                val current = seeds.firstOrNull { it.id == seed }
+                DropdownField<Seed?>(
+                    "Zaad", listOf(null) + seeds, current, { it?.name ?: "Losse plant (zonder zaad)" },
+                    { chosen ->
+                        // Naam volgt het zaad zolang je hem niet zelf hebt aangepast.
+                        if (name.isBlank() || name == current?.name) name = chosen?.name.orEmpty()
+                        seed = chosen?.id
+                    },
+                    Modifier.fillMaxWidth(),
+                )
+                Field("Naam", name, { name = it }, placeholder = "Naam van de plant")
+                Hint("Neemt de naam van het zaad over. De plant houdt deze naam ook als het zaad later verdwijnt.")
+            }
+            FormSection("Waar en wanneer", Icons.Outlined.LocationOn, tint = pk.indoor) {
+                DateField("Zaaidatum", sowDate, { sowDate = it }, Modifier.fillMaxWidth())
+                Field("Locatie", location, { location = it }, placeholder = "Vensterbank, bak 2...")
+            }
+            FormSection("Status", status.icon, tint = statusColors(status).second) {
+                StatusPicker(status) { status = it }
+            }
+            FormSection("Oogst", Icons.Outlined.Agriculture, tint = statusColors(PlantStatus.GEOOGST).second) {
+                DateField("Oogstdatum", harvestDate, { harvestDate = it }, Modifier.fillMaxWidth(), clearable = true)
+                Field("Hoeveelheid en notitie", harvestText, { harvestText = it }, placeholder = "Bijvoorbeeld 2 kg, mooie vruchten")
+            }
+            FormSection("Notities", Icons.Outlined.StickyNote2) {
+                Field("Notities", notes, { notes = it }, singleLine = false)
+            }
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
